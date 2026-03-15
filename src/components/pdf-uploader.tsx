@@ -126,14 +126,14 @@ export function PDFUploader() {
               will be isolated here for the duration of the session.
             </p>
           </div>
-          <div className="flex gap-1.5">
-            <span className="inline-flex items-center rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
+          <div className="flex flex-col gap-1.5">
+            <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
               Session-Isolated
             </span>
-            <span className="inline-flex items-center rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
+            <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
               Ephemeral Vector Store
             </span>
-            <span className="inline-flex items-center rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
+            <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
               Encrypted Session Storage
             </span>
           </div>
