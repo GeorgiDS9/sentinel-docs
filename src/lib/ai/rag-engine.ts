@@ -1,5 +1,6 @@
 import { OpenAIEmbeddings } from "@langchain/openai"
 import PDFParser from "pdf2json";
+import { redactText } from "@/lib/security/redactor";
 
 type SessionId = string;
 
@@ -84,22 +85,38 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string> {
 
 export async function ingestPdfForSession(buffer: Buffer, sessionId: string) {
   try {
-    const text = await extractTextFromPdf(buffer);
+    const rawText = await extractTextFromPdf(buffer);
     
-    if (!text || text.trim().length < 10) {
+    if (!rawText || rawText.trim().length < 10) {
       throw new Error("Extraction resulted in empty text.");
     }
 
-    const chunks = chunkText(text, 1000, 200);
+    // Sanitize text before it hits the AI pipeline
+    // This is the "Zero-Trust" moment: we scrub PII before chunking or embedding.
+    const { sanitizedText, stats } = redactText(rawText);
+    
+    console.log(`🛡️ Sentinel Security Audit:
+      - Emails Redacted: ${stats.emails}
+      - Phones Redacted: ${stats.phones}
+      - Cards Redacted: ${stats.cards}
+      - SSNs Redacted: ${stats.ssns}
+    `);
+
+    // We now use sanitizedText for all subsequent steps
+    const chunks = chunkText(sanitizedText, 1000, 200);
     const vectors = await embeddings.embedDocuments(chunks);
 
     sessionStores.set(sessionId, {
       chunks,
       vectors,
-      rawText: text,
+      rawText: sanitizedText, // We store the "Clean" version only
     });
 
-    return { success: true };
+    // Return the stats so the UI can eventually show the "Security Report"
+    return { 
+      success: true,
+      securityAudit: stats 
+    };
   } catch (error) {
     console.error("❌ Ingestion Error:", error);
     throw error;
