@@ -57,7 +57,7 @@ export function PDFUploader() {
 
       toast({
         title: "Document ready for chat!",
-        description: "Ask a question in the chat panel to query this PDF.",
+        description: "Ask a question about your PDFs…",
       });
     } catch (error) {
       toast({

@@ -25,7 +25,7 @@ export default function Home() {
           <div className="flex items-center gap-3 text-xs text-slate-300/80">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 font-medium text-emerald-100 shadow-sm backdrop-blur">
               <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(34,197,94,0.35)]" />
-              <span>Live RAG shell</span>
+              <span>Live Secure RAG Shell</span>
             </div>
           </div>
         </header>
@@ -55,7 +55,7 @@ export default function Home() {
             <div className="mb-3 flex items-center justify-between gap-3 px-1">
               <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/70 px-3 py-1 text-xs font-medium text-slate-200/90 ring-1 ring-white/10">
                 <MessageCircle className="size-3.5 text-violet-300" />
-                <span>Chat with your documents</span>
+                <span>Secure Document Chat</span>
               </div>
               <div className="flex items-center gap-1.5 text-[10px] text-slate-300/70">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(34,197,94,0.35)]" />

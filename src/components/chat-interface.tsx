@@ -108,11 +108,11 @@ export function ChatInterface() {
           {showWelcome && (
             <div className="mt-4 space-y-2 rounded-2xl bg-slate-900/80 p-3 text-xs text-slate-300 ring-1 ring-white/10">
               <p className="font-medium text-slate-100">
-                You&apos;re connected to the Sentinel Docs RAG shell.
+                You&apos;re connected to the Sentinel Docs Secure RAG shell.
               </p>
               <p>
-                Upload a PDF on the left, then ask grounded questions about its
-                contents here.
+                Upload a sensitive PDF on the left, then ask grounded, sanitized
+                questions here.
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-[11px] text-slate-400">
                 <li>
@@ -160,7 +160,7 @@ export function ChatInterface() {
           if (!isIngested) {
             event.preventDefault();
             toast({
-              title: "Upload a PDF first",
+              title: "Upload a sensitive PDF first",
               description:
                 "Ingest at least one PDF on the left before asking questions.",
             });
