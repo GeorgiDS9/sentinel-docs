@@ -41,7 +41,7 @@ export function ChatInterface() {
       title: "Chat error",
       description:
         error.message ||
-        "DocuMind AI ran into an issue generating a response. Please try again.",
+        "Sentinel Docs ran into an issue generating a response. Please try again.",
     });
   }, [error, toast]);
 
@@ -95,7 +95,7 @@ export function ChatInterface() {
             <Sparkles className="size-3.5" />
           </div>
           <div className="flex flex-col">
-            <span className="font-medium">DocuMind AI</span>
+            <span className="font-medium">Sentinel Docs</span>
             <span className="text-[10px] text-slate-400">
               Ask anything about your PDFs once ingestion is connected.
             </span>
@@ -108,7 +108,7 @@ export function ChatInterface() {
           {showWelcome && (
             <div className="mt-4 space-y-2 rounded-2xl bg-slate-900/80 p-3 text-xs text-slate-300 ring-1 ring-white/10">
               <p className="font-medium text-slate-100">
-                You&apos;re connected to the DocuMind RAG shell.
+                You&apos;re connected to the Sentinel Docs RAG shell.
               </p>
               <p>
                 Upload a PDF on the left, then ask grounded questions about its
@@ -155,7 +155,7 @@ export function ChatInterface() {
           // Check for ingestion
           const isIngested =
             typeof window !== "undefined" &&
-            window.localStorage.getItem("documind-ai-ingested");
+            window.localStorage.getItem("sentinel-docs-ingested");
 
           if (!isIngested) {
             event.preventDefault();
@@ -185,7 +185,7 @@ export function ChatInterface() {
         <Button
           type="submit"
           size="icon-sm"
-          className="shrink-0 rounded-xl bg-sky-500/90 text-slate-950 shadow-lg shadow-sky-500/40 hover:bg-sky-400"
+          className="shrink-0 rounded-xl bg-emerald-500/90 text-slate-950 shadow-lg shadow-emerald-500/40 hover:bg-emerald-400"
           disabled={isLoading || !input.trim()}
         >
           <ArrowUpRight className="size-3.5" />

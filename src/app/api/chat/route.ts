@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "DocuMind AI encountered an issue generating a response. Please try again or reduce the document size.",
+          "Sentinel Docs encountered an issue generating a response. Please try again or reduce the document size.",
       },
       { status: 500 },
     )

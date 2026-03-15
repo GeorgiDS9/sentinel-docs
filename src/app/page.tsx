@@ -1,25 +1,25 @@
-import { Brain, FileText, MessageCircle } from "lucide-react"
+import { Brain, FileText, MessageCircle } from "lucide-react";
 
-import { PDFUploader } from "@/components/pdf-uploader"
-import { ChatInterface } from "@/components/chat-interface"
+import { PDFUploader } from "@/components/pdf-uploader";
+import { ChatInterface } from "@/components/chat-interface";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#1e293b,_transparent_55%),radial-gradient(circle_at_bottom,_#020617,_#020617)] text-foreground">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#1e293b,_transparent_55%),radial-gradient(circle_at_bottom,_#022c22,_#022c22)] text-foreground">
       <div className="pointer-events-none fixed inset-0 opacity-60 mix-blend-screen">
-        <div className="absolute -left-40 top-10 h-72 w-72 rounded-full bg-sky-500/20 blur-3xl" />
+        <div className="absolute -left-40 top-10 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
       </div>
 
       <main className="container relative z-10 flex min-h-screen max-w-6xl flex-col gap-8 px-4 py-10 md:py-12">
         <header className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-xl dark:bg-slate-900/40">
-            <span className="inline-flex size-6 items-center justify-center rounded-full bg-sky-500/15 text-sky-300 ring-1 ring-sky-500/40">
+            <span className="inline-flex size-6 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/40">
               <Brain className="size-3.5" />
             </span>
-            <span className="text-sky-100/80">DocuMind AI</span>
+            <span className="text-sky-100/80">Sentinel Docs</span>
             <span className="h-1 w-1 rounded-full bg-sky-300/70" />
-            <span className="text-slate-200/80">Enterprise RAG for PDFs</span>
+            <span className="text-slate-200/80">Zero-Trust Document Vault</span>
           </div>
 
           <div className="flex items-center gap-3 text-xs text-slate-300/80">
@@ -36,14 +36,14 @@ export default function Home() {
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/60 px-3 py-1 text-xs font-medium text-slate-200 shadow-sm ring-1 ring-white/10">
                   <FileText className="size-3.5 text-sky-300" />
-                  <span>Document workspace</span>
+                  <span>Secure workspace</span>
                 </div>
                 <h1 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-slate-50 md:text-3xl">
-                  Turn static PDFs into live, searchable knowledge.
+                  Analyze sensitive documents with privacy-first AI.
                 </h1>
                 <p className="mt-2 max-w-md text-sm text-slate-300/80">
-                  Ingest assets once, then ask precise, auditable questions powered by
-                  retrieval-augmented generation.
+                  Ingest assets once, then ask precise, auditable questions
+                  powered by retrieval-augmented generation.
                 </p>
               </div>
             </div>
@@ -68,5 +68,5 @@ export default function Home() {
         </section>
       </main>
     </div>
-  )
+  );
 }

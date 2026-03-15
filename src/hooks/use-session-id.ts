@@ -16,7 +16,7 @@ export function useSessionId() {
   useEffect(() => {
     if (typeof window === "undefined") return
 
-    const storageKey = "documind-ai-session-id"
+    const storageKey = "sentinel-docs-session-id"
     let existing = window.localStorage.getItem(storageKey)
 
     if (!existing) {

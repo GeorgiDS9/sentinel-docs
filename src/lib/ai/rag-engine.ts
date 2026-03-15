@@ -20,12 +20,12 @@ const embeddings = new OpenAIEmbeddings({
 
 // Ensure sessionStores persists across hot reloads in dev
 const globalForRag = globalThis as unknown as {
-  __DOCUMIND_SESSION_STORES__?: Map<SessionId, SessionStore>
+  __SENTINEL_DOCS_SESSION_STORES__?: Map<SessionId, SessionStore>
 }
 export const sessionStores: Map<SessionId, SessionStore> =
-  globalForRag.__DOCUMIND_SESSION_STORES__ || new Map<SessionId, SessionStore>()
-if (!globalForRag.__DOCUMIND_SESSION_STORES__) {
-  globalForRag.__DOCUMIND_SESSION_STORES__ = sessionStores
+  globalForRag.__SENTINEL_DOCS_SESSION_STORES__ || new Map<SessionId, SessionStore>()
+if (!globalForRag.__SENTINEL_DOCS_SESSION_STORES__) {
+  globalForRag.__SENTINEL_DOCS_SESSION_STORES__ = sessionStores
 }
 
 function chunkText(
