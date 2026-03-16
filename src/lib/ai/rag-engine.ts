@@ -74,11 +74,16 @@ async function extractTextFromPdf(buffer: Buffer): Promise<string> {
 
     pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData?.parserError || errData as Error));
     pdfParser.on("pdfParser_dataReady", () => {
-      // Use the built-in raw text extractor - it's much more reliable than walking the JSON tree
       const rawText = pdfParser.getRawTextContent();
-      resolve(decodeURIComponent(rawText));
+      
+      try {
+        // Attempt to decode, but catch errors if the PDF has "malformed" characters like %
+        resolve(decodeURIComponent(rawText));
+      } catch (e) {
+        console.warn("🛡️ Sentinel Warning: URI malformed during PDF decode. Falling back to raw text.");
+        resolve(rawText); // Fallback to raw text so the engine doesn't crash
+      }
     });
-
     pdfParser.parseBuffer(buffer);
   });
 }
