@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-
 import { ingestPdfForSession } from "@/lib/ai/rag-engine"
 
 export async function POST(request: Request) {
@@ -20,17 +19,24 @@ export async function POST(request: Request) {
   const buffer = Buffer.from(arrayBuffer)
 
   try {
-    await ingestPdfForSession(buffer, sessionId)
+    // Capture the result (which now includes success and securityAudit stats)
+    const result = await ingestPdfForSession(buffer, sessionId)
+
+    // Return the status AND the security report to the UI
+    return NextResponse.json(
+      { 
+        status: "ok", 
+        sessionId, 
+        message: "Document ready for chat.",
+        securityAudit: result.securityAudit // This is the magic line
+      },
+      { status: 200 },
+    )
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message ?? "Failed to ingest PDF." },
       { status: 400 },
     )
   }
-
-  return NextResponse.json(
-    { status: "ok", sessionId, message: "Document ready for chat." },
-    { status: 200 },
-  )
 }
 

@@ -44,10 +44,9 @@ export function PDFUploader() {
         body: formData,
       });
 
+      const data = await response.json().catch(() => null);
+
       if (!response.ok) {
-        const data = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
         throw new Error(data?.error || "Failed to ingest document.");
       }
 
@@ -55,10 +54,26 @@ export function PDFUploader() {
         window.localStorage.setItem("sentinel-docs-ingested", "true");
       }
 
-      toast({
-        title: "Document ready for chat!",
-        description: "Ask a question about your PDFs…",
-      });
+      // 🛡️ SENTINEL SECURITY REPORT
+      if (data.securityAudit) {
+        const { emails, phones, ssns, cards } = data.securityAudit;
+        const totalBlocked = emails + phones + ssns + cards;
+
+        toast({
+          title:
+            totalBlocked > 0 ? "🛡️ Document Sanitized" : "✅ Document Secured",
+          description:
+            totalBlocked > 0
+              ? `Blocked ${totalBlocked} PII leaks (Emails: ${emails}, Phones: ${phones}, Cards: ${cards}, SSNs: ${ssns}).`
+              : "No PII detected. Document safely stored in ephemeral session.",
+        });
+      } else {
+        // Fallback if no audit data exists
+        toast({
+          title: "Document ready for chat!",
+          description: "Ask a question about your PDFs…",
+        });
+      }
     } catch (error) {
       toast({
         title: "Ingestion failed",
