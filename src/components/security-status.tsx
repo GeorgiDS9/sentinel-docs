@@ -53,7 +53,7 @@ export function SecurityStatus({ stats, isIngested }: SecurityStatusProps) {
           </span>
         </div>
 
-        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="h-px g-linear-to-r from-transparent via-white/10 to-transparent" />
 
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-slate-900/50 rounded-lg p-2 border border-white/5">
