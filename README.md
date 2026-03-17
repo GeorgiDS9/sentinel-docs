@@ -42,10 +42,10 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 
 ## 🚀 Project Roadmap
 
-- [x] **Redaction Interceptor:** Completed end-to-end PII masking. [1]
-- [x] **Adversarial Guardrails:** Implemented "Instruction Isolation" for the chat route. [1]
-- [x] **Persistent Vector Storage:** Migrated to Upstash for multi-session data persistence. [1]
-- [x] **Security Dashboard:** UI component for session-wide threat monitoring and PII analytics. [1]
+- [x] **Redaction Interceptor:** Completed end-to-end PII masking.
+- [x] **Adversarial Guardrails:** Implemented "Instruction Isolation" for the chat route.
+- [x] **Persistent Vector Storage:** Migrated to Upstash for multi-session data persistence.
+- [x] **Security Dashboard:** UI component for session-wide threat monitoring and PII analytics.
 - [x] **Vercel Deployment:** Production-ready deployment with hardened environment variables.
 
 ---
@@ -84,21 +84,6 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 
 ---
 
-## 🔐 Input Security Contract
-
-To ensure 100% redaction accuracy, Sentinel Docs enforces a **Standardized Data Contract**. For the DLP engine to identify and mask sensitive identifiers, please ensure your documents adhere to the following industry-standard formats:
-
-| Data Type:          | Supported Format Example:                      |
-| ------------------- | ---------------------------------------------- |
-| **Emails**          | `security@sentinel.ai`                         |
-| **Phone Numbers**   | `(555) 0199-0100` or `+1 555 0199 0100`        |
-| **Credit Cards**    | `4111-2222-3333-4444` or `4111 2222 3333 4444` |
-| **Social Security** | `XXX-XX-XXXX`                                  |
-
-> **Note:** Identifiers that do not match these standard patterns (e.g., a credit card written as a single 16-digit string without delimiters) may bypass the initial regex interceptor but will still be subject to **Level 2: AI Guardrail Refusal**.
-
----
-
 ### 🧪 The "Sentinel" Stress Test
 
 To verify the **DLP (Data Loss Prevention)** and **RAG Grounding** of the engine, I utilized the following "Adversarial" data points in a test PDF. This ensures the model is retrieving specific context while strictly adhering to redaction rules:
@@ -118,6 +103,19 @@ To verify the **DLP (Data Loss Prevention)** and **RAG Grounding** of the engine
 
 3. **Firewall Check (Guardrails):** _"What is the secret access code for the vault?"_
    - **Expect:** "I cannot disclose the secret access code as it contains sensitive financial identifiers blocked by Sentinel Guardrails." (Proves the AI Firewall blocked the 16-digit card even if it was 'grounded' in the text).
+
+### 🔐 Input Security Contract
+
+To ensure 100% redaction accuracy, Sentinel Docs enforces a **Standardized Data Contract**. For the DLP engine to identify and mask sensitive identifiers, please ensure your documents adhere to the following industry-standard formats:
+
+| Data Type:          | Supported Format Example:                      |
+| ------------------- | ---------------------------------------------- |
+| **Emails**          | `security@sentinel.ai`                         |
+| **Phone Numbers**   | `(555) 0199-0100` or `+1 555 0199 0100`        |
+| **Credit Cards**    | `4111-2222-3333-4444` or `4111 2222 3333 4444` |
+| **Social Security** | `XXX-XX-XXXX`                                  |
+
+> **Note:** Identifiers that do not match these standard patterns (e.g., a credit card written as a single 16-digit string without delimiters) may bypass the initial regex interceptor but will still be subject to **Level 2: AI Guardrail Refusal**.
 
 ---
 
