@@ -1,6 +1,6 @@
 # 🛡️ Sentinel Docs: Security-Hardened RAG for Sensitive Data
 
-**[🚀 Live Demo Coming Soon](#)** | **[📂 View Codebase](https://github.com/GeorgiDS9/sentinel-docs)**
+**[🚀 View Live Demo](https://sentinel-docs-eight.vercel.app/)** | **[📂 View Codebase](https://github.com/GeorgiDS9/sentinel-docs)**
 
 **Defensive AI Engineering | Automated PII Redaction | Next.js 15 | Upstash Vector**
 
@@ -46,7 +46,7 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 - [x] **Adversarial Guardrails:** Implemented "Instruction Isolation" for the chat route. [1]
 - [x] **Persistent Vector Storage:** Migrated to Upstash for multi-session data persistence. [1]
 - [x] **Security Dashboard:** UI component for session-wide threat monitoring and PII analytics. [1]
-- [ ] **Vercel Deployment:** Production-ready deployment with hardened environment variables.
+- [x] **Vercel Deployment:** Production-ready deployment with hardened environment variables.
 
 ---
 
