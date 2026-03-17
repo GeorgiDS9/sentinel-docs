@@ -72,13 +72,15 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 
 > **Architectural Note:** This scenario illustrates the **Multi-Layer Security Pipeline**. The **Audit Toast** confirms that the Ingestion Redactor successfully intercepted 6 PII leaks (Phones) during document processing. Simultaneously, when the user queries sensitive financial data, the **AI Guardrail Layer** detects the pattern and issues a secure refusal: _"A sensitive identifier was detected and blocked by Sentinel Guardrails."_ This proves that even if a threat bypasses initial regex filters, the **Defensive System Prompt** acts as a final firewall to prevent data leakage while maintaining **Source Traceability**.
 >
-> **The Role of Source Traceability:** Notice the **Source 1** pill remains visible. This is critical for **Enterprise Auditability**; it proves the RAG engine successfully retrieved the relevant "Financial Section" from the vector store, but the Security Layer denied the disclosure of the specific value. This ensures **Context Awareness** without compromising **Data Privacy**.
+> **The Role of Source Traceability:** Notice the **Source 1, Source 2, etc.** pills remain visible. This is critical for **Enterprise Auditability**; it proves the RAG engine successfully retrieved the relevant "Financial Section" from the vector store, but the Security Layer denied the disclosure of the specific value. This ensures **Context Awareness** without compromising **Data Privacy**.
 
 #### **v2: The Sentinel Guard Dashboard (Persistent Monitoring)**
 
-![Sentinel Guard Dashboard](./docs/assets/sentinel-guard-dashboard.png)
+![Sentinel Guard Dashboard](./docs/assets/sentinel-guard-dashboard-v2.png)
 
 > **Architectural Note:** To provide a permanent audit trail, I evolved the UI into a **Persistent Monitoring Dashboard**. This widget hydrates from **LocalStorage** to reflect the persistent cloud state in Upstash. It transforms transient alerts into a session-long "Shield Status," ensuring the security posture is always visible even after a browser refresh.
+>
+> **Multi-Vector Retrieval:** Powered by Upstash Vector, Sentinel aggregates evidence from multiple document segments (Source 1, Source 2, Source 3) to ensure high-fidelity grounding and verifiable audit trails.
 
 ---
 
