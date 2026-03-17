@@ -1,14 +1,21 @@
 "use client";
 
 import { CloudUpload, FileText, Sparkles } from "lucide-react";
-
 import { useSessionId } from "@/hooks/use-session-id";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-
 import { useState } from "react";
 
-export function PDFUploader() {
+interface PDFUploaderProps {
+  onIngestSuccess: (stats: {
+    emails: number;
+    phones: number;
+    cards: number;
+    ssns: number;
+  }) => void;
+}
+
+export function PDFUploader({ onIngestSuccess }: PDFUploaderProps) {
   const sessionId = useSessionId();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,12 +57,11 @@ export function PDFUploader() {
         throw new Error(data?.error || "Failed to ingest document.");
       }
 
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("sentinel-docs-ingested", "true");
-      }
-
-      // 🛡️ SENTINEL SECURITY REPORT
+      // 🛡️ SENTINEL SECURITY REPORT & CALLBACK
       if (data.securityAudit) {
+        // Notify the parent (page.tsx) to update the Dashboard
+        onIngestSuccess(data.securityAudit);
+
         const { emails, phones, ssns, cards } = data.securityAudit;
         const totalBlocked = emails + phones + ssns + cards;
 
@@ -68,7 +74,6 @@ export function PDFUploader() {
               : "No PII detected. Document safely stored in ephemeral session.",
         });
       } else {
-        // Fallback if no audit data exists
         toast({
           title: "Document ready for chat!",
           description: "Ask a question about your PDFs…",
@@ -89,6 +94,7 @@ export function PDFUploader() {
 
   return (
     <div className="space-y-4">
+      {/* ... Rest of your JSX remains exactly the same ... */}
       <Card className="relative overflow-hidden border-white/15 bg-slate-950/30 p-4 backdrop-blur-2xl shadow-inner shadow-slate-950/60">
         <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-500/15 blur-3xl" />
 
@@ -104,7 +110,7 @@ export function PDFUploader() {
               before semantic chunking and vectorization.
             </p>
             <p className="text-[11px] text-slate-400">
-              Documents are processed in <strong>Ephemeral RAM</strong>,
+              Documents are processed via <strong>Upstash Vector</strong>,
               segmented into 1000-character slices, and isolated to this
               session. No data persists on disk.
             </p>
@@ -146,7 +152,7 @@ export function PDFUploader() {
               Session-Isolated
             </span>
             <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
-              Ephemeral Vector Store
+              Persistent Cloud Store
             </span>
             <span className="inline-flex items-center whitespace-nowrap rounded-full bg-slate-900/80 px-3.5 py-1 text-[10px] text-slate-300 ring-1 ring-white/10">
               Encrypted Session Storage
