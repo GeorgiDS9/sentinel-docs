@@ -1,127 +1,79 @@
-import { OpenAIEmbeddings } from "@langchain/openai"
+import { OpenAIEmbeddings } from "@langchain/openai";
 import PDFParser from "pdf2json";
 import { redactText } from "@/lib/security/redactor";
+import { Index } from "@upstash/vector";
 
-type SessionId = string;
-
-export type RetrievedChunk = {
-  id: number
-  text: string
-}
-
-type SessionStore = {
-  chunks: string[]
-  vectors: number[][]
-  rawText: string
-}
+// 🛡️ Initialize the Cloud Index
+const index = new Index({
+  url: process.env.UPSTASH_VECTOR_REST_URL as string,
+  token: process.env.UPSTASH_VECTOR_REST_TOKEN as string,
+});
 
 const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-small",
-})
+});
 
-// Ensure sessionStores persists across hot reloads in dev
-const globalForRag = globalThis as unknown as {
-  __SENTINEL_DOCS_SESSION_STORES__?: Map<SessionId, SessionStore>
-}
-export const sessionStores: Map<SessionId, SessionStore> =
-  globalForRag.__SENTINEL_DOCS_SESSION_STORES__ || new Map<SessionId, SessionStore>()
-if (!globalForRag.__SENTINEL_DOCS_SESSION_STORES__) {
-  globalForRag.__SENTINEL_DOCS_SESSION_STORES__ = sessionStores
-}
+export type RetrievedChunk = {
+  id: string | number;
+  text: string;
+};
 
-function chunkText(
-  text: string,
-  chunkSize = 1000,
-  chunkOverlap = 200,
-): string[] {
-  const normalized = text.replace(/\s+/g, " ").trim()
-  const chunks: string[] = []
+// --- PDF & Chunking Helpers (Keep these the same) ---
 
-  if (!normalized) return chunks
+function chunkText(text: string, chunkSize = 1000, chunkOverlap = 200): string[] {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  const chunks: string[] = [];
+  if (!normalized) return chunks;
 
-  let start = 0
+  let start = 0;
   while (start < normalized.length) {
-    const end = start + chunkSize
-    const slice = normalized.slice(start, end)
-    chunks.push(slice)
-
-    if (end >= normalized.length) break
-    start = end - chunkOverlap
+    const end = start + chunkSize;
+    chunks.push(normalized.slice(start, end));
+    if (end >= normalized.length) break;
+    start = end - chunkOverlap;
   }
-
-  return chunks
-}
-
-function cosineSimilarity(a: number[], b: number[]): number {
-  const len = Math.min(a.length, b.length)
-  let dot = 0
-  let normA = 0
-  let normB = 0
-
-  for (let i = 0; i < len; i++) {
-    dot += a[i] * b[i]
-    normA += a[i] * a[i]
-    normB += b[i] * b[i]
-  }
-
-  if (!normA || !normB) return 0
-  return dot / (Math.sqrt(normA) * Math.sqrt(normB))
+  return chunks;
 }
 
 async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser(null, true); // Use text-only mode
-
-    pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData?.parserError || errData as Error));
+    const pdfParser = new PDFParser(null, true);
+    pdfParser.on("pdfParser_dataError", (errData: any) => reject(errData?.parserError || errData));
     pdfParser.on("pdfParser_dataReady", () => {
       const rawText = pdfParser.getRawTextContent();
-      
       try {
-        // Attempt to decode, but catch errors if the PDF has "malformed" characters like %
         resolve(decodeURIComponent(rawText));
       } catch (e) {
-        console.warn("🛡️ Sentinel Warning: URI malformed during PDF decode. Falling back to raw text.");
-        resolve(rawText); // Fallback to raw text so the engine doesn't crash
+        resolve(rawText);
       }
     });
     pdfParser.parseBuffer(buffer);
   });
 }
 
+// --- 🛡️ The "Amnesia Cure" Logic ---
+
 export async function ingestPdfForSession(buffer: Buffer, sessionId: string) {
   try {
     const rawText = await extractTextFromPdf(buffer);
-    
-    if (!rawText || rawText.trim().length < 10) {
-      throw new Error("Extraction resulted in empty text.");
-    }
-
-    // Sanitize text before it hits the AI pipeline
-    // This is the "Zero-Trust" moment: we scrub PII before chunking or embedding.
     const { sanitizedText, stats } = redactText(rawText);
-    
-    console.log(`🛡️ Sentinel Security Audit:
-      - Emails Redacted: ${stats.emails}
-      - Phones Redacted: ${stats.phones}
-      - Cards Redacted: ${stats.cards}
-      - SSNs Redacted: ${stats.ssns}
-    `);
 
-    // We now use sanitizedText for all subsequent steps
     const chunks = chunkText(sanitizedText, 1000, 200);
     const vectors = await embeddings.embedDocuments(chunks);
 
-    sessionStores.set(sessionId, {
-      chunks,
-      vectors,
-      rawText: sanitizedText, // We store the "Clean" version only
-    });
+    // 🛡️ CLOUD UPSERT: Save to Upstash using sessionId as a namespace
+    // This keeps different users' data isolated within the same index.
+    const upstashNamespace = index.namespace(sessionId);
+    
+    const records = chunks.map((text, i) => ({
+      id: `chunk-${i}-${Date.now()}`, // Unique ID for the record
+      vector: vectors[i],
+      metadata: { text }, // 🟢 We store the sanitized text in metadata for retrieval
+    }));
 
-    // Return the stats so the UI can eventually show the "Security Report"
-    return { 
-      success: true,
-      securityAudit: stats 
-    };
+    await upstashNamespace.upsert(records);
+
+    return { success: true, securityAudit: stats };
   } catch (error) {
     console.error("❌ Ingestion Error:", error);
     throw error;
@@ -129,32 +81,28 @@ export async function ingestPdfForSession(buffer: Buffer, sessionId: string) {
 }
 
 export async function retrieveRelevantChunks(
-  sessionId: SessionId,
+  sessionId: string,
   query: string,
-  k = 3,
+  k = 3
 ): Promise<RetrievedChunk[]> {
-  const store = sessionStores.get(sessionId)
-  if (!store) {
-    return []
+  try {
+    const queryVector = await embeddings.embedQuery(query);
+
+    // 🛡️ CLOUD QUERY: Search only within the specific user's namespace
+    const upstashNamespace = index.namespace(sessionId);
+    
+    const results = await upstashNamespace.query({
+      vector: queryVector,
+      topK: k,
+      includeMetadata: true, // 🟢 This pulls our sanitized text back out
+    });
+
+    return results.map((res) => ({
+      id: res.id,
+      text: res.metadata?.text as string || "Metadata missing",
+    }));
+  } catch (error) {
+    console.error("❌ Retrieval Error:", error);
+    return [];
   }
-
-  const queryVector = await embeddings.embedQuery(query)
-
-  const scored = store.chunks.map((chunk, index) => ({
-    chunk,
-    score: cosineSimilarity(queryVector, store.vectors[index]),
-  }))
-
-  scored.sort((a, b) => b.score - a.score)
-
-  const top = scored
-    .slice(0, k)
-    .filter((item) => item.score > 0)
-    .map((item, index) => ({
-      id: index,
-      text: item.chunk,
-    }))
-
-  return top
 }
-
