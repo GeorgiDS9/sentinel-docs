@@ -84,6 +84,21 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 
 ---
 
+## 🔐 Input Security Contract
+
+To ensure 100% redaction accuracy, Sentinel Docs enforces a **Standardized Data Contract**. For the DLP engine to identify and mask sensitive identifiers, please ensure your documents adhere to the following industry-standard formats:
+
+| Data Type:          | Supported Format Example:                      |
+| ------------------- | ---------------------------------------------- |
+| **Emails**          | `security@sentinel.ai`                         |
+| **Phone Numbers**   | `(555) 0199-0100` or `+1 555 0199 0100`        |
+| **Credit Cards**    | `4111-2222-3333-4444` or `4111 2222 3333 4444` |
+| **Social Security** | `XXX-XX-XXXX`                                  |
+
+> **Note:** Identifiers that do not match these standard patterns (e.g., a credit card written as a single 16-digit string without delimiters) may bypass the initial regex interceptor but will still be subject to **Level 2: AI Guardrail Refusal**.
+
+---
+
 ### 🧪 The "Sentinel" Stress Test
 
 To verify the **DLP (Data Loss Prevention)** and **RAG Grounding** of the engine, I utilized the following "Adversarial" data points in a test PDF. This ensures the model is retrieving specific context while strictly adhering to redaction rules:
