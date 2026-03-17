@@ -59,19 +59,21 @@ export function PDFUploader({ onIngestSuccess }: PDFUploaderProps) {
 
       // 🛡️ SENTINEL SECURITY REPORT & CALLBACK
       if (data.securityAudit) {
-        // Notify the parent (page.tsx) to update the Dashboard
+        // 🟢 1. Update the Permanent Dashboard (Global State)
         onIngestSuccess(data.securityAudit);
 
         const { emails, phones, ssns, cards } = data.securityAudit;
         const totalBlocked = emails + phones + ssns + cards;
 
+        // 🟢 2. Trigger the "Immediate Alert" Toast
         toast({
           title:
             totalBlocked > 0 ? "🛡️ Document Sanitized" : "✅ Document Secured",
+          // We keep the high-level count but point them to the dashboard for the breakdown
           description:
             totalBlocked > 0
-              ? `Blocked ${totalBlocked} PII leaks (Emails: ${emails}, Phones: ${phones}, Cards: ${cards}, SSNs: ${ssns}).`
-              : "No PII detected. Document safely stored in ephemeral session.",
+              ? `Intercepted ${totalBlocked} PII leaks. View the Sentinel Guard dashboard for details.`
+              : "No PII detected. Document safely stored in persistent cloud vault.",
         });
       } else {
         toast({
