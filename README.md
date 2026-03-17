@@ -2,7 +2,7 @@
 
 **[🚀 Live Demo Coming Soon](#)** | **[📂 View Codebase](https://github.com/GeorgiDS9/sentinel-docs)**
 
-**Defensive AI Engineering | Automated PII Redaction | Next.js 15**
+**Defensive AI Engineering | Automated PII Redaction | Next.js 15 | Upstash Vector**
 
 Sentinel Docs is an enterprise-grade **Security Vault** for document intelligence. Built as a "Zero-Trust" evolution of the RAG pipeline, it implements a defensive ingestion layer that sanitizes sensitive data before it ever reaches the vector store or the LLM.
 
@@ -10,39 +10,43 @@ Sentinel Docs is an enterprise-grade **Security Vault** for document intelligenc
 
 ## 🛡️ Core Security Architecture
 
-- **Automated PII Redaction:** In-flight Regex-based sanitization engine that masks Emails, Phone Numbers, Credit Cards (Visa/Amex), and SSNs.
-- **Defensive System Prompting:** Hardened AI instructions using **Markdown header isolation** to detect and block indirect prompt injection attacks (e.g., "Ignore previous rules").
-- **Real-Time Security Auditing:** A "Security Shield" handshake that provides users with a granular "Redaction Report" (PII counts) upon document ingestion.
-- **Zero-Trust Grounding:** Strict context-only constraints to prevent the LLM from leaking its own training data or "forgetting" the secure document context.
+**Automated PII Redaction:** In-flight Regex-based sanitization engine that masks Emails, Phone Numbers, Credit Cards, and SSNs _before_ data is vectorized.
+
+- **Real-Time Security Auditing (v1):** A "Security Shield" handshake (UI toast) that provides users with immediate feedback via granular "Redaction Reports" (PII counts) upon document ingestion.
+- **Sentinel Guard Dashboard (v2):** A persistent "Command Center" UI (mini-dashboard card) that aggregates session-wide audit metrics into a permanent monitor, surviving browser refreshes.
+- **Persistent Cloud Memory:** Integrated **Upstash Vector** (1536d / Cosine) for session-isolated storage, curing the "Amnesia" bug by persisting sanitized context to the cloud.
+- **Defensive Guardrails:** Hardened AI instructions using **Markdown Header Isolation** to detect and block indirect prompt injection attacks.
+- **Zero-Trust Grounding:** Strict context-only constraints to prevent the LLM from leaking training data or "forgetting" the secure document session.
 
 ---
 
 ## 🏗️ Technical Foundation (The "Sentinel" Edge)
 
-_Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project solves the "AI Data Leak" problem through three layers of defense:_
+_Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project solves the "AI Data Leak" problem and treats AI as a security boundary through these layers of defense:_
 
-1.  **The Interceptor Layer:** Sanitizes raw PDF text via a normalization pipeline before chunking or embedding occurs.
+1.  **The Interceptor Layer:** Sanitizes raw text via a normalization pipeline before chunking, ensuring only "Safe" data travels to the cloud.
 2.  **The Verification Layer:** Retains "Source Pills" for human auditability, ensuring that even sanitized responses are verifiable.
 3.  **The Infrastructure Layer:** Solves Node.js/Browser environment mismatches (DOMMatrix polyfills) to enable reliable server-side PDF processing in Next.js 15.
+4.  **Infrastructure Resilience:** Resolved Next.js 15 hydration mismatches using **Dynamic Client-Only Islands** (`next/dynamic`) and hardened CSS against browser autofill overrides.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Next.js 15 (App Router), Tailwind CSS, Shadcn/UI (**Obsidian Security Theme**)
-- **Security Engine:** Custom Regex-based Sanitization & Defensive Prompt Engineering
+- **Frontend:** Next.js 15 (App Router), Tailwind CSS, Shadcn/UI (**Obsidian Theme**)
+- **Vector Storage:** Ephemeral Session Stores migarated to **Upstash Vector** (Serverless / COSINE / 1536d)
 - **AI Orchestration:** LangChain.js & Vercel AI SDK
+- **Security Engine:** Custom Regex-based Sanitization DLP & Defensive Prompt Engineering
 - **LLM & Embeddings:** OpenAI `gpt-4o-mini` & `text-embedding-3-small`
-- **Vector Storage:** Ephemeral Session Stores (Upstash Vector migration in progress)
 
 ---
 
-## 🚀 Roadmap: Next Steps
+## 🚀 Project Roadmap
 
-- [x] **Redaction Interceptor:** Completed end-to-end PII masking.
-- [x] **Adversarial Guardrails:** Implemented "Instruction Isolation" for the chat route.
-- [ ] **Persistent Vector Storage:** Migrating to Upstash for multi-session data persistence.
-- [ ] **Security Dashboard:** UI component for session-wide threat monitoring and PII analytics.
+- [x] **Redaction Interceptor:** Completed end-to-end PII masking. [1]
+- [x] **Adversarial Guardrails:** Implemented "Instruction Isolation" for the chat route. [1]
+- [x] **Persistent Vector Storage:** Migrated to Upstash for multi-session data persistence. [1]
+- [x] **Security Dashboard:** UI component for session-wide threat monitoring and PII analytics. [1]
 - [ ] **Vercel Deployment:** Production-ready deployment with hardened environment variables.
 
 ---
@@ -55,13 +59,21 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 
 > **Architectural Note:** This view demonstrates the **Sentinel Validation Layer** in action. Upon uploading a clean technical document, the Redaction Engine performed a full PII scan (Regex-based normalization) and correctly identified zero threats. This proves the precision of the engine—it avoids **"False Positives"** by distinguishing between sensitive identifiers and standard technical data (like timestamps or metrics). The **Source 1** pill confirms that the RAG engine successfully retrieved the relevant context, while the AI correctly grounded its response in the provided text.
 
-### **Scenario 2: The "Defense-in-Depth" Shield**
+### **Scenario 2: The DLP (Data Loss Prevention) Shield & Evolution of Monitoring**
+
+#### **v1: The In-Flight Toast (Real-Time Interception)**
 
 ![Sentinel Defense in Action](./docs/assets/sentinel-shield-action.png)
 
 > **Architectural Note:** This scenario illustrates the **Multi-Layer Security Pipeline**. The **Audit Toast** confirms that the Ingestion Redactor successfully intercepted 6 PII leaks (Phones) during document processing. Simultaneously, when the user queries sensitive financial data, the **AI Guardrail Layer** detects the pattern and issues a secure refusal: _"A sensitive identifier was detected and blocked by Sentinel Guardrails."_ This proves that even if a threat bypasses initial regex filters, the **Defensive System Prompt** acts as a final firewall to prevent data leakage while maintaining **Source Traceability**.
 >
 > **The Role of Source Traceability:** Notice the **Source 1** pill remains visible. This is critical for **Enterprise Auditability**; it proves the RAG engine successfully retrieved the relevant "Financial Section" from the vector store, but the Security Layer denied the disclosure of the specific value. This ensures **Context Awareness** without compromising **Data Privacy**.
+
+#### **v2: The Sentinel Guard Dashboard (Persistent Monitoring)**
+
+![Sentinel Guard Dashboard](./docs/assets/sentinel-guard-dashboard.png)
+
+> **Architectural Note:** To provide a permanent audit trail, I evolved the UI into a **Persistent Monitoring Dashboard**. This widget hydrates from **LocalStorage** to reflect the persistent cloud state in Upstash. It transforms transient alerts into a session-long "Shield Status," ensuring the security posture is always visible even after a browser refresh.
 
 ### **Scenario 3: The "Sentinel Firewall" (Instruction Isolation)**
 
