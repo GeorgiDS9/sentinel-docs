@@ -1,24 +1,34 @@
 import { NextResponse } from "next/server"
 import { ingestPdfForSession } from "@/lib/ai/rag-engine"
+import { IngestSchema } from "@/lib/validation" // 🛡️ Import the master key
 
 export async function POST(request: Request) {
   const formData = await request.formData()
 
-  const file = formData.get("file")
-  const sessionId =
-    (formData.get("sessionId") as string | null) ?? "default-session"
+  // Validate the incoming FormData against our Schema
+  const submission = IngestSchema.safeParse({
+    file: formData.get("file"),
+    sessionId: formData.get("sessionId"),
+  })
 
-  if (!file || !(file instanceof Blob)) {
+  // 🛡️ Fail Fast: If validation fails, return the specific error to the UI
+  if (!submission.success) {
+    // We grab the first issue's message (e.g., "Only PDFs are authorized")
+    const errorMsg = submission.error.issues[0]?.message || "Invalid upload data"
+    
     return NextResponse.json(
-      { error: "A PDF file is required." },
-      { status: 400 },
+      { error: errorMsg },
+      { status: 400 }
     )
   }
 
-  const arrayBuffer = await file.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
+  // Destructure the validated, type-safe data
+  const { file, sessionId } = submission.data
 
   try {
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
     // Capture the result (which now includes success and securityAudit stats)
     const result = await ingestPdfForSession(buffer, sessionId)
 
@@ -28,7 +38,7 @@ export async function POST(request: Request) {
         status: "ok", 
         sessionId, 
         message: "Document ready for chat.",
-        securityAudit: result.securityAudit // This is the magic line
+        securityAudit: result.securityAudit 
       },
       { status: 200 },
     )
@@ -39,4 +49,3 @@ export async function POST(request: Request) {
     )
   }
 }
-
