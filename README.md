@@ -16,6 +16,9 @@ Sentinel Docs is an enterprise-grade **Security Vault** for document intelligenc
 - **Persistent Cloud Memory:** Integrated **Upstash Vector** (1536d / Cosine) for session-isolated storage, curing the "Amnesia" bug by persisting sanitized context to the cloud.
 - **Defensive Guardrails:** Hardened AI instructions using **Markdown Header Isolation** to detect and block indirect prompt injection attacks.
 - **Zero-Trust Grounding:** Strict context-only constraints to prevent the LLM from leaking training data or "forgetting" the secure document session.
+- **Schema-Based Data Contracts:** Utilizes **Zod** for strict validation at the API boundary, enforcing PDF-only ingestion and guarding against malformed payloads or oversized file uploads.
+- **Multi-Vector Retrieval Integrity:** Leverages **Upstash namespaces** to physically isolate user data, ensuring that "Source Pills" and document context are strictly confined to the authorized session.
+- **Verifiable Metadata Breadcrumbs:** Extends the RAG pipeline to tag cloud vectors with specific PDF page indices, transforming generic source pills into **Legal-Grade Citations** (e.g., `[Page 4]`).
 
 ---
 
@@ -27,6 +30,25 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 2.  **The Verification Layer:** Retains "Source Pills" for human auditability, ensuring that even sanitized responses are verifiable.
 3.  **The Infrastructure Layer:** Solves Node.js/Browser environment mismatches (DOMMatrix polyfills) to enable reliable server-side PDF processing in Next.js 15.
 4.  **Infrastructure Resilience:** Resolved Next.js 15 hydration mismatches using **Dynamic Client-Only Islands** (`next/dynamic`) and hardened CSS against browser autofill overrides.
+5.  **The Economic Shield:** Integrates **Upstash Redis** to prevent resource abuse and uncontrolled cloud expenditure, ensuring the RAG pipeline remains cost-efficient and available.
+
+---
+
+## 🧪 Automated Testing Suite
+
+To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual-layered testing strategy to verify both isolated logic and integrated workflows.
+
+### **Phase 1: Unit & Logic Audits (Vitest)**
+
+- **DLP Engine Audit:** Validates that the `redactor.ts` successfully intercepts PII even when obscured by non-standard delimiters (spaces, dashes, dots).
+- **Schema Enforcement:** Verifies that **Zod** bouncers correctly reject unauthorized file types and oversized payloads before they reach the RAG engine.
+- **State Hydration:** Ensures the security dashboard correctly recovers session state from `localStorage` without UI flicker or hydration mismatches.
+
+### **Phase 2: End-to-End Verification (Playwright - WIP)**
+
+- **Full-Cycle RAG Verification:** Automating the full ingestion-to-chat lifecycle to verify grounding accuracy and multi-vector source retrieval (source pill generation).
+- **The Kill-Switch Protocol:** Validating that the "Purge" action successfully wipes both the Upstash Cloud namespace and the local browser cache.
+- **Rate Limit Enforcement:** Verifying that the **Upstash Redis** middleware correctly identifies and throttles excessive requests (e.g., more than 10 uploads/hour) to protect system resources.
 
 ---
 
@@ -34,9 +56,12 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 
 - **Frontend:** Next.js 15 (App Router), Tailwind CSS, Shadcn/UI (**Obsidian Theme**)
 - **Vector Storage:** Ephemeral Session Stores migarated to **Upstash Vector** (Serverless / COSINE / 1536d)
+- **Global Rate Limiting:** **Upstash Redis** (Edge-level "Wallet Protection" for AI resources)
 - **AI Orchestration:** LangChain.js & Vercel AI SDK
 - **Security Engine:** Custom Regex-based Sanitization DLP & Defensive Prompt Engineering
 - **LLM & Embeddings:** OpenAI `gpt-4o-mini` & `text-embedding-3-small`
+- **Validation:** **Zod** (Strict Schema-based Data Contracts)
+- **Testing:** **Vitest** (Unit/Logic) & **Playwright** (E2E/Flow)
 
 ---
 
@@ -44,9 +69,14 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 
 - [x] **Redaction Interceptor:** Completed end-to-end PII masking.
 - [x] **Adversarial Guardrails:** Implemented "Instruction Isolation" for the chat route.
-- [x] **Persistent Vector Storage:** Migrated to Upstash for multi-session data persistence.
+- [x] **Persistent Vector Storage:** Migrated in-memory to Upstash for multi-session data persistence.
 - [x] **Security Dashboard:** UI component for session-wide threat monitoring and PII analytics.
 - [x] **Vercel Deployment:** Production-ready deployment with hardened environment variables.
+- [x] **Automated Unit Testing:** Integrated **Vitest** for redaction logic and schema audits.
+- [x] **Metadata Hardening (WIP):** Implementing enriched source breadcrumbs (Page numbers/Section titles instead of "Source 1").
+- [x] **The "Kill Switch" (WIP):** One-click session purge for total data decommissioning.
+- [ ] **Infrastructure Shield (WIP):** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
+- [ ] **E2E Automation (WIP):** Developing **Playwright** suites for full-cycle security verification.
 
 ---
 
@@ -81,6 +111,14 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project
 > **Architectural Note:** To provide a permanent audit trail, I evolved the UI into a **Persistent Monitoring Dashboard**. This widget hydrates from **LocalStorage** to reflect the persistent cloud state in Upstash. It transforms transient alerts into a session-long "Shield Status," ensuring the security posture is always visible even after a browser refresh.
 >
 > **Multi-Vector Retrieval:** Powered by Upstash Vector, Sentinel aggregates evidence from multiple document segments (Source 1, Source 2, Source 3) to ensure high-fidelity grounding and verifiable audit trails.
+
+#### **v3: The "Breadcrumb" Evolution (Legal-Grade Citations)**
+
+![Sentinel Final Breadcrumbs](./docs/assets/sentinel-final-breadcrumbs.png)
+
+> **Architectural Note:** This final evolution transforms Sentinel from a simple chatbot into a **Verifiable Audit Tool**. By refactoring the ingestion engine to track PDF page indices, every response now carries a **Page Breadcrumb** (e.g., `[Page 1]`). This ensures that even when data is redacted, a human auditor can trace the AI's logic back to the exact physical source within the encrypted cloud vault.
+>
+> **The Decommissioning Protocol (Kill Switch):** Notice the **Purge Vault** button at the base of the dashboard. This triggers a "Triple-Wipe" protocol: physically resetting the Upstash Cloud namespace, clearing the browser's LocalStorage, and force-resetting the UI state. This provides the user with absolute **Data Sovereignty** over their sensitive assets.
 
 ---
 
