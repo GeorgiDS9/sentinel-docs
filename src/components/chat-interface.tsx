@@ -198,7 +198,7 @@ export function ChatInterface() {
             <button
               key={source.id ?? index}
               type="button"
-              className="rounded-full border border-white/15 bg-slate-900/80 px-2.5 py-1 text-slate-200 shadow-sm backdrop-blur hover:border-sky-400 hover:text-sky-100"
+              className="rounded-full border border-white/15 bg-slate-900/80 px-2.5 py-1 text-slate-200 shadow-sm backdrop-blur transition-all hover:border-sky-400 hover:bg-sky-500/10 hover:text-sky-100"
               onClick={() => {
                 if (
                   typeof navigator !== "undefined" &&
@@ -206,14 +206,19 @@ export function ChatInterface() {
                 ) {
                   void navigator.clipboard.writeText(source.text);
                   toast({
-                    title: `Source ${index + 1} copied`,
+                    title: source.page
+                      ? `Page ${source.page} Snippet Copied`
+                      : `Source ${index + 1} Copied`,
                     description:
                       "The full source snippet is now in your clipboard.",
                   });
                 }
               }}
             >
-              <span className="font-medium">Source {index + 1}</span>
+              {/* 🟢 THE BREADCRUMB: Shows [Page X] if metadata exists */}
+              <span className="font-medium">
+                {source.page ? `[Page ${source.page}]` : `Source ${index + 1}`}
+              </span>
             </button>
           ))}
         </div>
