@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, ShieldAlert, Activity, Lock } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Activity, Lock, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface SecurityStatusProps {
@@ -11,9 +11,14 @@ interface SecurityStatusProps {
     ssns: number;
   };
   isIngested: boolean;
+  onPurge: () => void;
 }
 
-export function SecurityStatus({ stats, isIngested }: SecurityStatusProps) {
+export function SecurityStatus({
+  stats,
+  isIngested,
+  onPurge,
+}: SecurityStatusProps) {
   const totalBlocked = stats.emails + stats.phones + stats.cards + stats.ssns;
 
   return (
@@ -80,6 +85,16 @@ export function SecurityStatus({ stats, isIngested }: SecurityStatusProps) {
             </div>
           </div>
         </div>
+        {/* 🛡️ THE KILL SWITCH: Added at the bottom within the existing card structure */}
+        {isIngested && (
+          <button
+            onClick={onPurge}
+            className="group mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/20 bg-red-500/5 py-2 text-[9px] font-bold uppercase tracking-widest text-red-400/80 transition-all hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
+          >
+            <Trash2 className="size-3 transition-transform group-hover:scale-110" />
+            Purge Vault
+          </button>
+        )}
       </div>
     </Card>
   );

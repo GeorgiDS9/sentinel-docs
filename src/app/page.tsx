@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 
 import { PDFUploader } from "@/components/pdf-uploader";
 import { ChatInterface } from "@/components/chat-interface";
+import { useSessionId } from "@/hooks/use-session-id"; // 🛡️ 1. Import Session ID Hook
 
 // 🛡️ ARCHITECT'S MOVE: Dynamic Import with SSR disabled
 // This kills the hydration mismatch and the "cascading render" error for good.
@@ -16,6 +17,9 @@ const SecurityStatus = dynamic(
 );
 
 export default function Home() {
+  const sessionId = useSessionId(); // 🛡️ 2. Initialize Session ID
+  const [chatKey, setChatKey] = useState(0); // 🛡️ 3. Key to force-reset the Chat UI on purge
+
   // 🛡️ SHARED SECURITY STATE (Lazy Initializer Pattern)
   // Hydrates state directly from LocalStorage to prevent flicker.
   const [isIngested, setIsIngested] = useState(() => {
@@ -39,6 +43,40 @@ export default function Home() {
     return { emails: 0, phones: 0, cards: 0, ssns: 0 };
   });
 
+  // 🛡️ 4. THE KILL SWITCH LOGIC (Decommissioning Protocol)
+  const handlePurgeVault = async () => {
+    if (
+      !confirm(
+        "⚠️ DECOMMISSION PROTOCOL: This will permanently nuke all cloud context. Proceed?",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      // THE CLOUD WIPE: Call the Purge API
+      const response = await fetch("/api/rag/purge", {
+        method: "POST",
+        body: JSON.stringify({ sessionId }),
+      });
+
+      if (!response.ok) throw new Error("Cloud purge failed");
+
+      // THE LOCAL WIPE: Reset browser memory
+      localStorage.removeItem("sentinel-audit-stats");
+      localStorage.removeItem("sentinel-docs-ingested");
+
+      // THE UI RESET: Zero out stats and flip flags
+      setSecurityStats({ emails: 0, phones: 0, cards: 0, ssns: 0 });
+      setIsIngested(false);
+
+      // THE CHAT RESET: Incrementing this key forces the ChatInterface to re-mount fresh
+      setChatKey((prev) => prev + 1);
+    } catch (error) {
+      console.error("Purge Error:", error);
+    }
+  };
+
   // 🛡️ PERSISTENCE: Sync state to LocalStorage whenever it changes
   // No more loading logic here = No more "Cascading Render" warnings.
   useEffect(() => {
@@ -52,7 +90,7 @@ export default function Home() {
   }, [securityStats, isIngested]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#1e293b,_transparent_55%),radial-gradient(circle_at_bottom,_#022c22,_#022c22)] text-foreground font-sans selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,#1e293b,transparent_55%),radial-gradient(circle_at_bottom,#022c22,#022c22)] text-foreground font-sans selection:bg-emerald-500/30">
       {/* 🌌 Background Gradients */}
       <div className="pointer-events-none fixed inset-0 opacity-60 mix-blend-screen">
         <div className="absolute -left-40 top-10 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl" />
@@ -111,14 +149,19 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 🛡️ THE COMMAND CENTER WIDGET (Clean render, no 'mounted' guard needed) */}
+            {/* 🛡️ THE COMMAND CENTER WIDGET */}
             <div className="mt-8 transition-all duration-500 ease-in-out">
-              <SecurityStatus stats={securityStats} isIngested={isIngested} />
+              {/* 🛡️ 5. Pass the purge handler to the component */}
+              <SecurityStatus
+                stats={securityStats}
+                isIngested={isIngested}
+                onPurge={handlePurgeVault}
+              />
             </div>
           </article>
 
           {/* 💬 Chat Section */}
-          <article className="relative flex min-h-[460px] flex-col rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/70 via-slate-950/80 to-slate-900/90 p-4 shadow-[0_0_0_1px_rgba(148,163,184,0.4),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl">
+          <article className="relative flex min-h-[460px] flex-col rounded-3xl border border-white/10 bg-linear-to-br from-slate-900/70 via-slate-950/80 to-slate-900/90 p-4 shadow-[0_0_0_1px_rgba(148,163,184,0.4),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl">
             <div className="mb-3 flex items-center justify-between gap-3 px-1">
               <div className="inline-flex items-center gap-2 rounded-full bg-slate-900/70 px-3 py-1 text-xs font-medium text-slate-200/90 ring-1 ring-white/10">
                 <MessageCircle className="size-3.5 text-violet-300" />
@@ -130,7 +173,8 @@ export default function Home() {
               </div>
             </div>
 
-            <ChatInterface />
+            {/* 🛡️ 6. Using 'key' forces a full component reset on Purge */}
+            <ChatInterface key={chatKey} />
           </article>
         </section>
       </main>
