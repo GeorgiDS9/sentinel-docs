@@ -2,9 +2,9 @@
 
 **[🚀 View Live Demo](https://sentinel-docs-eight.vercel.app/)** | **[📂 View Codebase](https://github.com/GeorgiDS9/sentinel-docs)**
 
-**Defensive AI Engineering | Automated PII Redaction | Next.js 15 | Upstash Vector**
+**Defensive AI Engineering | Automated PII Redaction | Next.js 15 | Zod Validation | Upstash (Vector & Redis)**
 
-Sentinel Docs is an enterprise-grade **Security Vault** for document intelligence. Built as a "Zero-Trust" evolution of the RAG pipeline, it implements a defensive ingestion layer that sanitizes sensitive data before it ever reaches the vector store or the LLM.
+**Sentinel Docs** is an enterprise-grade **Security Vault** for document intelligence. Built as a **"Zero-Trust" evolution** of the RAG pipeline, it implements a defensive ingestion layer that **sanitizes sensitive data before it ever reaches the vector store or the LLM**. By integrating **Upstash Vector** for persistent namespaced memory and **Upstash Redis** for edge-level rate limiting, Sentinel provides a verifiable, **cost-protected**, and "Zero-Trace" environment for analyzing high-stakes assets.
 
 ---
 
@@ -30,7 +30,7 @@ Sentinel Docs is an enterprise-grade **Security Vault** for document intelligenc
 
 ## 🏗️ Technical Foundation (The "Sentinel" Edge)
 
-_Drawing on 5 years of cybersecurity experience at **Trend Micro**, this project solves the "AI Data Leak" problem and treats AI as a security boundary through these layers of defense:_
+_Drawing on 5 years of cybersecurity experience at **Trend Micro ( Trend AI)**, this project solves the "AI Data Leak" problem and treats AI as a security boundary through these layers of defense:_
 
 1.  **The Interceptor Layer:** Sanitizes raw text via a normalization pipeline before chunking, ensuring only "Safe" data travels to the cloud.
 2.  **The Verification Layer:** Retains "Source Pills" for human auditability, ensuring that even sanitized responses are verifiable.
