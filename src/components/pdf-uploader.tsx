@@ -5,6 +5,7 @@ import { useSessionId } from "@/hooks/use-session-id";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
+import { IngestSchema } from "@/lib/validation"; // Import the master key
 
 interface PDFUploaderProps {
   onIngestSuccess: (stats: {
@@ -24,19 +25,22 @@ export function PDFUploader({ onIngestSuccess }: PDFUploaderProps) {
     const file = event.target.files?.[0];
 
     if (!file) return;
-    if (file.type !== "application/pdf") {
-      toast({
-        title: "Unsupported file type",
-        description: "Please upload a PDF document.",
-      });
-      return;
-    }
 
-    if (!sessionId) {
+    // 🔒 PRE-FLIGHT: Validate locally using Zod before sending to server
+    const validation = IngestSchema.safeParse({
+      file,
+      sessionId: sessionId || "waiting-for-session",
+    });
+
+    if (!validation.success) {
       toast({
-        title: "Preparing workspace",
-        description: "Please wait a moment and try again.",
+        title: "Security Violation",
+        // @ts-expect-error - Some Shadcn versions have an imperfect Toast type definition
+        variant: "destructive",
+        description:
+          validation.error.issues[0]?.message || "Invalid upload data",
       });
+      event.target.value = ""; // Reset input
       return;
     }
 
@@ -44,7 +48,7 @@ export function PDFUploader({ onIngestSuccess }: PDFUploaderProps) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("sessionId", sessionId);
+      formData.append("sessionId", sessionId!);
 
       const response = await fetch("/api/rag/ingest", {
         method: "POST",
@@ -59,17 +63,14 @@ export function PDFUploader({ onIngestSuccess }: PDFUploaderProps) {
 
       // 🛡️ SENTINEL SECURITY REPORT & CALLBACK
       if (data.securityAudit) {
-        // 🟢 1. Update the Permanent Dashboard (Global State)
         onIngestSuccess(data.securityAudit);
 
         const { emails, phones, ssns, cards } = data.securityAudit;
         const totalBlocked = emails + phones + ssns + cards;
 
-        // 🟢 2. Trigger the "Immediate Alert" Toast
         toast({
           title:
             totalBlocked > 0 ? "🛡️ Document Sanitized" : "✅ Document Secured",
-          // We keep the high-level count but point them to the dashboard for the breakdown
           description:
             totalBlocked > 0
               ? `Intercepted ${totalBlocked} PII leaks. View the Sentinel Guard dashboard for details.`
