@@ -22,9 +22,9 @@
 - **Defensive Guardrails:** Hardened AI instructions using **Markdown Header Isolation** to detect and block indirect prompt injection attacks.
 - **Zero-Trust Grounding:** Strict context-only constraints to prevent the LLM from leaking training data or "forgetting" the secure document session.
 - **Schema-Based Data Contracts:** Utilizes **Zod** for strict validation at the API boundary, enforcing PDF-only ingestion and guarding against malformed payloads or oversized file uploads.
-- **Multi-Vector Retrieval Integrity (v1):** Leverages Upstash namespaces to physically isolate user data, ensuring that generic "Source Pills" (e.g., `Source 1`) and document context are strictly confined to the authorized session.
-- **Verifiable Metadata Breadcrumbs (v2):** Extends the RAG pipeline to tag cloud vectors with specific PDF page indices, transforming generic source pills into **Legal-Grade Citations** (e.g., `[Page 4]`).
-- **Edge-Level Rate Limiting:** Integrates Upstash Redis at the network edge to prevent resource abuse and "Wallet-Drain" attacks, ensuring the RAG pipeline remains cost-efficient and available for authorized sessions.
+- **Multi-Vector Retrieval Integrity (v1):** Leverages **Upstash namespaces** to physically isolate user data, ensuring that generic "Source Pills" (e.g., `Source 1`) and document context are strictly confined to the authorized session.
+- **Verifiable Metadata Breadcrumbs (v2):** Extends the RAG pipeline to tag cloud vectors with specific PDF page indices, transforming generic source pills into **Legal-Grade Citations** (e.g., `[Page 1]`).
+- **Edge-Level Rate Limiting:** Integrates **Upstash Redis** at the network edge to prevent resource abuse and "Wallet-Drain" attacks, ensuring the RAG pipeline remains cost-efficient and available for authorized sessions.
 
 ---
 
@@ -60,12 +60,12 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** Next.js 15 (App Router), Tailwind CSS, Shadcn/UI (**Obsidian Theme**)
+- **Frontend:** **Next.js 15 (App Router), Tailwind CSS, Shadcn/UI (Obsidian Theme)**
 - **Vector Storage:** Ephemeral Session Stores migarated to **Upstash Vector** (Serverless / COSINE / 1536d)
 - **Global Rate Limiting:** **Upstash Redis** (Edge-level "Wallet Protection" for AI resources)
-- **AI Orchestration:** LangChain.js & Vercel AI SDK
+- **AI Orchestration:** **LangChain.js** & **Vercel AI SDK**
 - **Security Engine:** Custom Regex-based Sanitization DLP & Defensive Prompt Engineering
-- **LLM & Embeddings:** OpenAI `gpt-4o-mini` & `text-embedding-3-small`
+- **LLM & Embeddings:** **OpenAI `gpt-4o-mini` & `text-embedding-3-small`**
 - **Validation:** **Zod** (Strict Schema-based Data Contracts)
 - **Testing:** **Vitest** (Unit/Logic) & **Playwright** (E2E/Flow)
 
@@ -75,11 +75,11 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 
 - [x] **Redaction Interceptor:** Completed end-to-end PII masking.
 - [x] **Adversarial Guardrails:** Implemented "Instruction Isolation" for the chat route.
-- [x] **Persistent Vector Storage:** Migrated in-memory to Upstash for multi-session data persistence.
+- [x] **Persistent Vector Storage:** Migrated in-memory to **Upstash** for multi-session data persistence.
 - [x] **Security Dashboard:** UI component for session-wide threat monitoring and PII analytics.
 - [x] **Vercel Deployment:** Production-ready deployment with hardened environment variables.
 - [x] **Automated Unit Testing:** Integrated **Vitest** for redaction logic and schema audits.
-- [x] **Metadata Hardening:** Evolved generic "Source 1" pills into enriched "Page Breadcrumbs" (e.g., [Page 4]) for legal-grade citations.
+- [x] **Metadata Hardening:** Evolved generic "Source 1" pills into enriched "Page Breadcrumbs" (e.g., [Page 1]) for legal-grade citations.
 - [x] **The "Kill Switch":** One-click session purge for total data decommissioning.
 - [ ] **Infrastructure Shield (WIP):** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
 - [ ] **E2E Automation (WIP):** Developing **Playwright** suites for full-cycle security verification.
@@ -122,7 +122,7 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 
 ![Sentinel Final Breadcrumbs](./docs/assets/sentinel-final-breadcrumbs.png)
 
-> **Architectural Note:** This final evolution transforms Sentinel from a simple chatbot into a **Verifiable Audit Tool**. By refactoring the ingestion engine to track PDF page indices, every response now carries a **Page Breadcrumb** (e.g., `[Page 1]`). This ensures that even when data is redacted, a human auditor can trace the AI's logic back to the exact physical source within the encrypted cloud vault.
+> **Architectural Note:** This final evolution transforms Sentinel from a simple chatbot into a **Verifiable Audit Tool**. By refactoring the ingestion engine to track PDF page indices, every response now carries a **Page Breadcrumb** (e.g., `[Page 4]`). This ensures that even when data is redacted, a human auditor can trace the AI's logic back to the exact physical source within the encrypted cloud vault.
 >
 > **The Decommissioning Protocol (Kill Switch):** Notice the **Purge Vault** button at the base of the dashboard. This triggers a "Triple-Wipe" protocol: physically resetting the Upstash Cloud namespace, clearing the browser's LocalStorage, and force-resetting the UI state. This provides the user with absolute **Data Sovereignty** over their sensitive assets.
 
@@ -161,7 +161,19 @@ To ensure 100% redaction accuracy, Sentinel Docs enforces a **Standardized Data 
 | **Credit Cards**    | `4111-2222-3333-4444` or `4111 2222 3333 4444` |
 | **Social Security** | `XXX-XX-XXXX`                                  |
 
-> **Note:** Identifiers that do not match these standard patterns (e.g., a credit card written as a single 16-digit string without delimiters) may bypass the initial regex interceptor but will still be subject to **Level 2: AI Guardrail Refusal**.
+> **Note:** Identifiers that do not match these standard patterns (e.g., a credit card written as a single 16-digit string without delimiters) may bypass the initial regex interceptor but may still be subject to **Level 2: AI Guardrail Refusal**.
+
+### ⚠️ Regional Limitations & Future Hardening
+
+The current **Level 1 (Deterministic)** redaction layer is optimized for the **International/North American** formats defined above. I am aware that regional variations (e.g., French +33 or German +49 phone formats) may bypass current regex filters if they deviate from these patterns.
+
+**Engineering Roadmap for Production:**
+
+To achieve **global PII compliance (Internationalization, i18n)** and eliminate **data exfiltration risks** in a production environment, I am evaluating the following multi-layered defense strategies (as future enhancements):
+
+1.  **AI-Based NER:** Transitioning from static Regex to **Named Entity Recognition (NER)** models (e.g., Microsoft Presidio) for semantic PII detection.
+2.  **Dedicated Libraries:** Implementing industry-standard validation libraries like **`google-libphonenumber`** to handle global regional formatting with mathematical precision.
+3.  **Output Interception:** Implementing a dual-pass filter to sanitize the AI's response before it is rendered to the user, ensuring a final fail-safe for any PII that bypassed ingestion filters.
 
 ---
 
