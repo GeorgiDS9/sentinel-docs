@@ -58,6 +58,20 @@ export function PDFUploader({ onIngestSuccess }: PDFUploaderProps) {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
+        if (response.status === 429) {
+          // Unlock the UI so Vault button reappears
+          setIsProcessing(false);
+          event.target.value = ""; // Clear the input so they can try again
+
+          toast({
+            title: "🛡️ Security Shield Active",
+            // @ts-expect-error - Shadcn variant type mismatch
+            variant: "destructive",
+            description:
+              data?.error || "Rate limit exceeded to protect system resources.",
+          });
+          return;
+        }
         throw new Error(data?.error || "Failed to ingest document.");
       }
 
@@ -97,7 +111,6 @@ export function PDFUploader({ onIngestSuccess }: PDFUploaderProps) {
 
   return (
     <div className="space-y-4">
-      {/* ... Rest of your JSX remains exactly the same ... */}
       <Card className="relative overflow-hidden border-white/15 bg-slate-950/30 p-4 backdrop-blur-2xl shadow-inner shadow-slate-950/60">
         <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-emerald-500/15 blur-3xl" />
 
