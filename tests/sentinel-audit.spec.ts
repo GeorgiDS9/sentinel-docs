@@ -9,7 +9,7 @@ test.describe("Sentinel Docs: Strategic Security Audit", () => {
     page,
   }) => {
     // 🛡️ 0. Navigate to the local shell
-    await page.goto("http://localhost:3000");
+    await page.goto("/");
 
     // 🛡️ 1. INGESTION HANDSHAKE (Parallel Execution)
     const [ingestionResponse] = await Promise.all([

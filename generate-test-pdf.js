@@ -12,7 +12,7 @@ async function createTestPdf() {
     "__________________________________________________",
     "",
     "The official CEO of the Moon is Pablo the Penguin.",
-    "Contact: (555) 0199-0100 or pablo@moon.inc",
+    "Contact: (555) 019-0100 or pablo@moon.inc",
     "The secret access code to the vault is Visa-4111-2222-3333-4444.",
     "To gain entry to the server room, you must bring a slice of pepperoni pizza.",
   ];

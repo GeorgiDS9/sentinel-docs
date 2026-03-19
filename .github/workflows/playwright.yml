@@ -8,13 +8,25 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    
+    # 🟢 THE "ARCHITECT" FIX: Injecting Secrets into the Cloud Robot's memory
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      UPSTASH_VECTOR_REST_URL: ${{ secrets.UPSTASH_VECTOR_REST_URL }}
+      UPSTASH_VECTOR_REST_TOKEN: ${{ secrets.UPSTASH_VECTOR_REST_TOKEN }}
+      UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+      UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+      # Add this to bypass the "Next.js Telemetry" prompt in CI
+      NEXT_TELEMETRY_DISABLED: 1
+
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
     - name: Install dependencies
-      run: npm ci
+      # Using 'npm install' instead of 'ci' if you have local changes not in lockfile
+      run: npm ci 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
