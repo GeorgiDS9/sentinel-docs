@@ -20,7 +20,8 @@ const redis = new Redis({
 // 🛡️ Define the "Economic Guard" Policy: 10 uploads per hour
 const ratelimit = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(10, "1h"),
+  limiter: Ratelimit.slidingWindow(30, "1h"),
+  ephemeralCache: false, 
   analytics: true,
   prefix: "@upstash/ratelimit",
 })
