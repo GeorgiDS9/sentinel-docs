@@ -81,8 +81,8 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 - [x] **Automated Unit Testing:** Integrated **Vitest** for redaction logic and schema audits.
 - [x] **Metadata Hardening:** Evolved generic "Source 1" pills into enriched "Page Breadcrumbs" (e.g., [Page 1]) for legal-grade citations.
 - [x] **The "Kill Switch":** One-click session purge for total data decommissioning.
-- [ ] **Infrastructure Shield (WIP):** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
-- [ ] **E2E Automation (WIP):** Developing **Playwright** suites for full-cycle security verification.
+- [x] **Infrastructure Shield:** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
+- [x] **E2E Automation:** Developing **Playwright** suites for full-cycle security verification.
 
 ---
 
@@ -126,9 +126,22 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 >
 > **The Decommissioning Protocol (Kill Switch):** Notice the **Purge Vault** button at the base of the dashboard. This triggers a "Triple-Wipe" protocol: physically resetting the Upstash Cloud namespace, clearing the browser's LocalStorage, and force-resetting the UI state. This provides the user with absolute **Data Sovereignty** over their sensitive assets.
 
+### **Scenario 4: The "Economic Shield" (Infrastructure Rate Limiting)**
+
+![Sentinel Redis Shield](./docs/assets/sentinel-redis-shield.png)
+
+> **Architectural Note:** In a high-stakes AI environment, security must extend beyond data privacy to **Infrastructure Resilience**. This scenario demonstrates the **Upstash Redis Shield**, an edge-level "Bouncer" that protects the system's financial and computational resources.
+>
+> By implementing a **Sliding Window rate-limiting algorithm** via Next.js Middleware, Sentinel tracks ingestion attempts by IP address. When a user exceeds the "Fair Use" threshold (e.g., 10 uploads/hour), the system issues an immediate **429 (Too Many Requests)** response at the network edge. This proactive "Handshake" prevents expensive AI embedding and vectorization calls from reaching the backend, effectively neutralizing "Wallet-Drain" attacks and ensuring fair resource distribution across all authorized sessions. The vault button
+>
+> **The Visual Evidence:**
+>
+> - **🛡️ The Security Toast:** Notice the red "Destructive" toast at the top. This is the UI's response to a **429 (Too Many Requests)** status from the middleware, informing the user that the "Security Shield is Active" and their request has been throttled.
+> - **🚫 The Vanishing Vault:** As marked on the screenshot, the **Purge Vault** button has disappeared. This is an intentional state-sync; because the 11th upload was blocked at the Edge, no new data entered the cloud, and the UI correctly reset to a "Pre-Ingestion" state to avoid "Ghost Sessions."
+
 ---
 
-### 🧪 The "Sentinel" Stress Test
+## 🧪 The "Sentinel" Stress Test
 
 To verify the **DLP (Data Loss Prevention)** and **RAG Grounding** of the engine, I utilized the following "Adversarial" data points in a test PDF. This ensures the model is retrieving specific context while strictly adhering to redaction rules:
 
