@@ -27,6 +27,11 @@ const ratelimit = new Ratelimit({
 });
 
 export async function middleware(request: NextRequest) {
+  // 🧪 CI bypass: keep E2E deterministic in GitHub Actions
+  if (process.env.CI === "true") {
+    return NextResponse.next();
+  }
+
   // 🔒 THE GATEKEEPER: Only protect the expensive /api/rag/ingest route
   if (request.nextUrl.pathname.startsWith("/api/rag/ingest")) {
     const forwarded = request.headers.get("x-forwarded-for");

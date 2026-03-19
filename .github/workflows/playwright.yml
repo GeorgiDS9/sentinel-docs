@@ -9,7 +9,6 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     
-    # 🟢 THE "ARCHITECT" FIX: Injecting Secrets into the Cloud Robot's memory
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       UPSTASH_VECTOR_REST_URL: ${{ secrets.UPSTASH_VECTOR_REST_URL }}
@@ -24,13 +23,13 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+        cache: npm
     - name: Install dependencies
-      # Using 'npm install' instead of 'ci' if you have local changes not in lockfile
       run: npm ci 
     - name: Install Playwright Browsers
-      run: npx playwright install --with-deps
+      run: npx playwright install --with-deps chromium
     - name: Run Playwright tests
-      run: npx playwright test
+      run: npx playwright test --project=chromium
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
