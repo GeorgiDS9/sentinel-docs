@@ -97,7 +97,8 @@ export function ChatInterface() {
           <div className="flex flex-col">
             <span className="font-medium">Sentinel Docs</span>
             <span className="text-[10px] text-slate-400">
-              Ask anything about your PDFs once ingestion is connected.
+              Start a secure session: Ask a question to audit your sanitized
+              document context.
             </span>
           </div>
         </div>
@@ -111,18 +112,22 @@ export function ChatInterface() {
                 You&apos;re connected to the Sentinel Docs Secure RAG shell.
               </p>
               <p>
-                Upload a sensitive PDF on the left, then ask grounded, sanitized
-                questions here.
+                Upload a sensitive PDF to begin a{" "}
+                <strong>grounded, sanitized</strong> analysis session.
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-4 text-[11px] text-slate-400">
                 <li>
-                  “Summarize the key risks in our latest vendor contract.”
+                  “Identify any <strong>PII leaks</strong> or high-risk
+                  identifiers in this contract.”
                 </li>
                 <li>
-                  “Compare Q3 vs Q4 performance from the attached financial
-                  report.”
+                  “Summarize the financial obligations on{" "}
+                  <strong>[Page 1]</strong> while masking personal data.”
                 </li>
-                <li>“What are the core findings from this research PDF?”</li>
+                <li>
+                  “Analyze the Q4 performance—verify my answer against the{" "}
+                  <strong>Source Breadcrumbs</strong>”.
+                </li>
               </ul>
             </div>
           )}

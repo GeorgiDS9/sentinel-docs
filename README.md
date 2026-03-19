@@ -163,7 +163,7 @@ To verify the **DLP (Data Loss Prevention)** and **RAG Grounding** of the engine
 
 ---
 
-### 🔐 Input Security Contract
+## 🔐 Input Security Contract
 
 To ensure 100% redaction accuracy, Sentinel Docs enforces a **Standardized Data Contract**. For the DLP engine to identify and mask sensitive identifiers, please ensure your documents adhere to the following industry-standard formats:
 
