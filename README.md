@@ -56,6 +56,20 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 - **The Kill-Switch Protocol:** Validating that the "Purge" action successfully wipes both the Upstash Cloud namespace and the local browser cache.
 - **Rate Limit Enforcement:** Verifying that the **Upstash Redis** middleware correctly identifies and throttles excessive requests (e.g., more than 10 uploads/hour) to protect system resources.
 
+### ✅ Playwright Audit (Passed)
+
+![Sentinel Playwright Audit Passed](./docs/assets/sentinel-playwright-audit-passed.png)
+
+#### 🔍 Optional: Debug Logging for Playwright Audits
+
+When diagnosing flaky E2E behavior, add temporary log markers around each audit phase, as seen:
+
+```ts
+console.log("🧐 Auditing Grounding...");
+// ... assertions / waits ...
+console.log("✅ Grounding Verified");
+```
+
 ---
 
 ## 🛠️ Tech Stack
@@ -82,7 +96,7 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 - [x] **Metadata Hardening:** Evolved generic "Source 1" pills into enriched "Page Breadcrumbs" (e.g., [Page 1]) for legal-grade citations.
 - [x] **The "Kill Switch":** One-click session purge for total data decommissioning.
 - [x] **Infrastructure Shield:** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
-- [ ] **E2E Automation (WIP):** Developing **Playwright** suites for full-cycle security verification.
+- [x] **E2E Security Auditing:** Engineered a **Playwright** adversarial suite integrated with **GitHub Actions (CI/CD)**. Every push triggers a robotic "Security Audit" that verifies PII redaction, Upstash Vector grounding, and economic rate-limiting.
 
 ---
 
