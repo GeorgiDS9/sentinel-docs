@@ -26,7 +26,7 @@ const ratelimit = new Ratelimit({
   prefix: "@upstash/ratelimit",
 });
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // 🧪 CI bypass: keep E2E deterministic in GitHub Actions
   if (process.env.CI === "true") {
     return NextResponse.next();
