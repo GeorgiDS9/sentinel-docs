@@ -82,7 +82,7 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 - [x] **Metadata Hardening:** Evolved generic "Source 1" pills into enriched "Page Breadcrumbs" (e.g., [Page 1]) for legal-grade citations.
 - [x] **The "Kill Switch":** One-click session purge for total data decommissioning.
 - [x] **Infrastructure Shield:** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
-- [x] **E2E Automation:** Developing **Playwright** suites for full-cycle security verification.
+- [ ] **E2E Automation (WIP):** Developing **Playwright** suites for full-cycle security verification.
 
 ---
 
@@ -192,21 +192,61 @@ To achieve **global PII compliance (Internationalization, i18n)** and eliminate 
 
 ## 🚦 Getting Started
 
-1.  **Clone & Install:**
-    ```bash
-    npm install
-    ```
-2.  **Environment Setup:**
-    Create a `.env.local` in the root and add your OpenAI key:
-    ```bash
-    OPENAI_API_KEY=sk-proj-xxxx...
-    ```
-3.  **Run Development:**
-    ```bash
-    npm run dev
-    ```
+Follow this four-stage protocol to initialize the Sentinel Docs environment and verify its defensive security layers.
 
----
+1.  **Environment Initialization:**
+
+```bash
+git clone https://github.com/GeorgiDS9/sentinel-docs
+cd sentinel-docs
+npm install
+```
+
+2.  **Infrastructure Configuration (.env.local):**
+
+Sentinel Docs requires a triple-pillar infrastructure to manage redaction, persistence, and rate-limiting. Create a `.env.local` file in the root directory and add your keys:
+
+```bash
+# 🧠 AI Engine: OpenAI (GPT-4o-Mini)
+OPENAI_API_KEY=sk-proj-xxxx...
+
+# ☁️ Persistent Vector Vault: Upstash Vector (1536d / Cosine)
+UPSTASH_VECTOR_REST_URL=https://...
+UPSTASH_VECTOR_REST_TOKEN=...
+
+# 🛡️ Economic Shield: Upstash Redis (Edge Rate-Limiting)
+UPSTASH_REDIS_REST_URL=https://...
+UPSTASH_REDIS_REST_TOKEN=...
+```
+
+3.  **Development & Security Audit:**
+
+    Run the Secure RAG Shell:
+
+```bash
+npm run dev
+```
+
+4.  🧪 **Automated Security Audits:**
+
+    Sentinel Docs utilizes a dual-layered testing strategy to verify both isolated logic and integrated "Zero-Trust" workflows.
+
+**_Phase 1: Unit Logic Audits (Vitest)_**
+
+Validates the deterministic "Hungry" regex patterns and Zod data contracts in isolation to ensure zero PII leakage during the normalization phase.
+
+```bash
+npm run test
+```
+
+**_Phase 2: Robotic System Audits (Playwright)_**
+
+Performs a full-cycle "Pablo the Penguin" walkthrough. This test automates a headless browser to verify the end-to-end ingestion-to-chat lifecycle, including PII redaction reports and [Page X] breadcrumbs.
+
+```bash
+# Ensure the dev server is running (`npm run dev`), then watch the audit live:
+npm run e2e:ui
+```
 
 ### **Engineering Philosophy**
 
