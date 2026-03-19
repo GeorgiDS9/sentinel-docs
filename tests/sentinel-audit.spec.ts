@@ -11,20 +11,20 @@ test.describe("Sentinel Docs: Strategic Security Audit", () => {
     // 🛡️ 0. Navigate to the local shell
     await page.goto("/");
 
-    // 🛡️ 1. INGESTION HANDSHAKE (Parallel Execution)
-    const [ingestionResponse] = await Promise.all([
-      page.waitForResponse((res) => res.url().includes("/api/rag/ingest"), {
-        timeout: 60000,
-      }),
-      page
-        .locator('input[type="file"]')
-        .setInputFiles(path.join(__dirname, "test-02.pdf")),
-    ]);
+    // 🛡️ 1. INGESTION HANDSHAKE (WebKit-safe)
+    const fileInput = page.locator('input[type="file"]');
 
-    // Trigger the React handler
-    await page.locator('input[type="file"]').dispatchEvent("change");
+    const ingestionResponsePromise = page.waitForResponse(
+      (res) => res.url().includes("/api/rag/ingest"),
+      { timeout: 60000 },
+    );
 
-    // 🟢 RESOLVED: Used the variable for a Strict Status Assertion
+    await fileInput.setInputFiles(path.join(__dirname, "test-02.pdf"));
+    await fileInput.dispatchEvent("change"); // trigger before awaiting response
+
+    const ingestionResponse = await ingestionResponsePromise;
+
+    // 🟢 Strict Status Assertion
     expect(
       ingestionResponse.status(),
       "Ingestion API failed to return 200",
