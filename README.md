@@ -72,7 +72,7 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro ( Trend AI)**, 
 - [x] **E2E Security Auditing:** Engineered a **Playwright** adversarial suite integrated with **GitHub Actions (CI/CD)**. Every push triggers a robotic "Security Audit" that verifies PII redaction, Upstash Vector grounding, and economic rate-limiting.
 - [x] **Observability:** Production-grade tracing and debugging with **LangSmith**.
 - [x] **LLM-as-a-Judge:** Integrating automated scoring for Faithfulness and Relevancy via LangSmith Evals.
-- [ ] **Red Team Gauntlet:** Automated prompt injection stress-testing.
+- [x] **Red Team Gauntlet:** Automated prompt injection stress-testing.
 - [ ] **Compliance Dashboard:** Real-time **NIST AI RMF** alignment and audit evidence visualization.
 
 ---
@@ -269,7 +269,7 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 - **Schema Enforcement:** Verifies that **Zod** bouncers correctly reject unauthorized file types and oversized payloads before they reach the RAG engine.
 - **State Hydration:** Ensures the security dashboard correctly recovers session state from `localStorage` without UI flicker or hydration mismatches.
 
-#### ✅ Viest Coverage (Unit Tests 100% )
+#### ✅ Vitest Coverage (Unit Tests 100% )
 
 ![Vitest Coverage (Unit Tests 100%)](./docs/assets/sentinel-vitest-coverage.png)
 
@@ -285,12 +285,12 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 
 #### 🔍 Optional: Debug Logging for Playwright Audits
 
-When diagnosing flaky E2E behavior, add temporary log markers around each audit phase, as seen:
+Playwright debug logs are feature-flagged and disabled by default to keep CI output clean.
 
-```ts
-console.log("🧐 Auditing Grounding...");
-// ... assertions / waits ...
-console.log("✅ Grounding Verified");
+Enable verbose audit logs locally:
+
+```bash
+PW_DEBUG_LOGS=true npx playwright test tests/sentinel-audit.spec.ts --project=chromium
 ```
 
 ---
@@ -364,6 +364,6 @@ Performs a full-cycle "Pablo the Penguin" walkthrough. This test automates a hea
 npm run e2e:ui
 ```
 
-### **Engineering Philosophy**
+### 🧭 **Engineering Philosophy**
 
 Sentinel Docs demonstrates that AI doesn't have to be a privacy risk. By applying **DLP (Data Loss Prevention)** principles to the RAG pipeline, I am building a blueprint for **Defensive AI systems** that prioritize **Privacy**, **Safety**, and **Traceability**.
