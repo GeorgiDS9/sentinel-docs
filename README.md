@@ -240,13 +240,17 @@ The suite uses red-team session identifiers (`redteam-...`) so attack runs are e
 
 #### ⚙️ Run Commands
 
-Run the Red Team suite:
+Run the 🥊 Red Team suite:
 
 ```bash
 # all configured browsers (chromium, firefox, webkit)
-npx playwright test tests/red-team.spec.ts
+RED_TEAM_SESSION_ID=redteam-local-00000001 npx playwright test tests/red-team.spec.ts
+
 # Chromium only (matches CI setup)
-npx playwright test tests/red-team.spec.ts --project=chromium
+RED_TEAM_SESSION_ID=redteam-local-00000001 npx playwright test tests/red-team.spec.ts --project=chromium
+
+# Optional verbose security report
+RED_TEAM_SESSION_ID=redteam-local-00000001 RED_TEAM_REPORT=true npx playwright test tests/red-team.spec.ts --project=chromium
 ```
 
 ---
