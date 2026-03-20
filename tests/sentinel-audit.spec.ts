@@ -42,6 +42,19 @@ test.describe("Sentinel Docs: Strategic Security Audit", () => {
     const piiCounter = page.locator("div.text-amber-400.font-mono");
     await expect(piiCounter).not.toHaveText("0", { timeout: 15000 });
 
+    // 3b. Dashboard Tile Assertions (pre-purge)
+    await expect(page.getByText("HARDENED", { exact: true })).toBeVisible();
+
+    await expect(page.getByText("PII Blocked", { exact: true })).toBeVisible();
+    await expect(page.getByText("Session", { exact: true })).toBeVisible();
+    await expect(page.getByText("ISOLATED", { exact: true })).toBeVisible();
+
+    // Validate numeric PII counter > 0
+    const piiText = (await piiCounter.first().innerText()).trim();
+    const piiValue = parseInt(piiText, 10);
+    expect(Number.isFinite(piiValue)).toBe(true);
+    expect(piiValue).toBeGreaterThan(0);
+
     // 🛡️ 4. GROUNDING CHECK (The "Pablo" Test)
     const chatInput = page.getByPlaceholder(/Ask a question/i);
     await Promise.all([
@@ -201,6 +214,33 @@ test.describe("Sentinel Docs: Strategic Security Audit", () => {
       expect(score).toBeGreaterThanOrEqual(0.1);
       expect(score).toBeLessThanOrEqual(0.9);
     }
+
+    // 7b. Extra UI Evidence: Judge Score tile matches verdict/score
+    const judgeTile = page
+      .getByText(/Judge Score/i)
+      .first()
+      .locator('xpath=ancestor::div[contains(@class,"bg-slate-900/50")][1]');
+
+    await expect(judgeTile).toBeVisible({ timeout: 60000 });
+
+    const judgeValue = judgeTile.locator(":scope > div").nth(1); // value div (verdict + (score))
+
+    await expect(judgeValue).toContainText(`${verdict} (${score.toFixed(2)})`);
+
+    const expectedColorClass =
+      verdict === "PASSED"
+        ? "text-emerald-400"
+        : verdict === "FAILED"
+          ? "text-red-400/80"
+          : "text-amber-400/80";
+
+    const escapeRegExp = (s: string) =>
+      s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    await expect(judgeValue).toHaveAttribute(
+      "class",
+      new RegExp(escapeRegExp(expectedColorClass)),
+    );
 
     // 🛡️ 8. KILL-SWITCH: Decommissioning Audit
     const purgeButton = page.getByRole("button", { name: /Purge Vault/i });

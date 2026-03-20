@@ -19,9 +19,16 @@ const ScorecardResponseSchema = z.object({
   verdict: z.enum(["PASSED", "FAILED", "NEEDS_REVIEW"]),
 });
 
+export type JudgeVerdict = "PASSED" | "FAILED" | "NEEDS_REVIEW";
+export type JudgeAudit = { verdict: JudgeVerdict; score: number };
+
 type ScorecardResponse = z.infer<typeof ScorecardResponseSchema>;
 
-export function ChatInterface() {
+export function ChatInterface({
+  onAudit,
+}: {
+  onAudit?: (audit: JudgeAudit | null) => void;
+}) {
   const sessionId = useSessionId();
   const { toast } = useToast();
 
@@ -56,6 +63,8 @@ export function ChatInterface() {
       }
 
       try {
+        // Clear previous dashboard value immediately while the judge runs.
+        onAudit?.(null);
         setIsAuditing(true);
 
         const res = await fetch("/api/admin/evaluate", {
@@ -81,12 +90,14 @@ export function ChatInterface() {
         const parsed = ScorecardResponseSchema.parse(data);
 
         setLastAudit(parsed);
+        onAudit?.({ verdict: parsed.verdict, score: parsed.score });
 
         console.log(
           `[Sentinel Audit] Score: ${parsed.score} | Verdict: ${parsed.verdict}`,
         );
       } catch (e) {
         console.warn("[Sentinel Audit] Judge failure:", e);
+        onAudit?.(null);
       } finally {
         setIsAuditing(false);
       }

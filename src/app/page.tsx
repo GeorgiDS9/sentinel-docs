@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 
 import { PDFUploader } from "@/components/pdf-uploader";
-import { ChatInterface } from "@/components/chat-interface";
+import { ChatInterface, type JudgeAudit } from "@/components/chat-interface";
 import { useSessionId } from "@/hooks/use-session-id"; // 🛡️ 1. Import Session ID Hook
 
 // 🛡️ ARCHITECT'S MOVE: Dynamic Import with SSR disabled
@@ -43,6 +43,8 @@ export default function Home() {
     return { emails: 0, phones: 0, cards: 0, ssns: 0 };
   });
 
+  const [judgeAudit, setJudgeAudit] = useState<JudgeAudit | null>(null);
+
   // 🛡️ 4. THE KILL SWITCH LOGIC (Decommissioning Protocol)
   const handlePurgeVault = async () => {
     if (
@@ -69,6 +71,9 @@ export default function Home() {
       // THE UI RESET: Zero out stats and flip flags
       setSecurityStats({ emails: 0, phones: 0, cards: 0, ssns: 0 });
       setIsIngested(false);
+
+      // Clear judge evidence on purge
+      setJudgeAudit(null);
 
       // THE CHAT RESET: Incrementing this key forces the ChatInterface to re-mount fresh
       setChatKey((prev) => prev + 1);
@@ -156,6 +161,7 @@ export default function Home() {
                 stats={securityStats}
                 isIngested={isIngested}
                 onPurge={handlePurgeVault}
+                judge={judgeAudit}
               />
             </div>
           </article>
@@ -167,14 +173,15 @@ export default function Home() {
                 <MessageCircle className="size-3.5 text-violet-300" />
                 <span>Secure Document Chat</span>
               </div>
+
               <div className="flex items-center gap-1.5 text-[10px] text-slate-300/70 font-mono">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(34,197,94,0.35)]" />
                 <span>GPT-4O-MINI · UPSTASH RAG</span>
               </div>
             </div>
 
-            {/* 🛡️ 6. Using 'key' forces a full component reset on Purge */}
-            <ChatInterface key={chatKey} />
+            {/* Using 'key' forces a full component reset on Purge */}
+            <ChatInterface key={chatKey} onAudit={setJudgeAudit} />
           </article>
         </section>
       </main>

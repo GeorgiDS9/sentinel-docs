@@ -2,6 +2,7 @@
 
 import { ShieldCheck, ShieldAlert, Activity, Lock, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import type { JudgeAudit } from "@/components/chat-interface";
 
 interface SecurityStatusProps {
   stats: {
@@ -12,14 +13,25 @@ interface SecurityStatusProps {
   };
   isIngested: boolean;
   onPurge: () => void;
+  judge?: JudgeAudit | null;
 }
 
 export function SecurityStatus({
   stats,
   isIngested,
   onPurge,
+  judge,
 }: SecurityStatusProps) {
   const totalBlocked = stats.emails + stats.phones + stats.cards + stats.ssns;
+
+  const judgeValueClass =
+    judge?.verdict === "PASSED"
+      ? "text-emerald-400"
+      : judge?.verdict === "FAILED"
+        ? "text-red-400/80"
+        : "text-amber-400/80";
+
+  const JudgeIcon = judge?.verdict === "PASSED" ? ShieldCheck : ShieldAlert;
 
   return (
     <Card className="p-4 border-white/10 bg-slate-950/40 backdrop-blur-2xl ring-1 ring-white/5">
@@ -40,6 +52,7 @@ export function SecurityStatus({
             Sentinel Guard
           </span>
         </div>
+
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-900/80 border border-white/5">
           <Activity className="size-3 text-sky-400" />
           <span className="text-[9px] text-sky-300 font-mono">ACTIVE</span>
@@ -85,6 +98,22 @@ export function SecurityStatus({
             </div>
           </div>
         </div>
+
+        {/* 🧠 Judge Score tile (inserted above Purge Vault) */}
+        {judge && (
+          <div className="bg-slate-900/50 rounded-lg p-2 border border-white/5">
+            <div className="flex items-center gap-1.5 mb-1 opacity-60">
+              <JudgeIcon className={`size-3 ${judgeValueClass}`} />
+              <span className="text-[8px] uppercase tracking-tighter text-slate-300">
+                Judge Score
+              </span>
+            </div>
+            <div className={`text-xs font-bold font-mono ${judgeValueClass}`}>
+              {judge.verdict} ({judge.score.toFixed(2)})
+            </div>
+          </div>
+        )}
+
         {/* 🛡️ THE KILL SWITCH: Added at the bottom within the existing card structure */}
         {isIngested && (
           <button
