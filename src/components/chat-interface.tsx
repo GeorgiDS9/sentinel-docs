@@ -235,7 +235,7 @@ export function ChatInterface({
                       lastAudit.verdict === "PASSED"
                         ? "text-emerald-400"
                         : lastAudit.verdict === "FAILED"
-                          ? "text-red-400/80"
+                          ? "text-red-500/75"
                           : "text-amber-400/80"
                     }
                   >

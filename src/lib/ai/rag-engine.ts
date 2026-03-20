@@ -13,10 +13,14 @@ const embeddings = new OpenAIEmbeddings({
   model: "text-embedding-3-small",
 });
 
+// Keep this conservative; fallback below prevents empty-context regressions.
+const MIN_RELEVANCE_SCORE = 0.35;
+
 export type RetrievedChunk = {
   id: string | number;
   text: string;
   page?: number;
+  score?: number;
 };
 
 /**
@@ -144,6 +148,8 @@ export async function ingestPdfForSession(buffer: Buffer, sessionId: string) {
 
 /**
  * Searches the cloud vault for relevant chunks within a specific session namespace.
+ * Adds relevance-threshold filtering, but preserves a fallback so UX never regresses
+ * to zero-context for valid in-session questions.
  */
 export async function retrieveRelevantChunks(
   sessionId: string,
@@ -160,10 +166,20 @@ export async function retrieveRelevantChunks(
       includeMetadata: true,
     });
 
-    return results.map((res) => ({
+    const filtered = results.filter((res: any) => {
+      const score = typeof res.score === "number" ? res.score : 0;
+      return score >= MIN_RELEVANCE_SCORE;
+    });
+
+    // Critical fallback: if threshold is too strict for a query, keep top-k results
+    // so source pills and judge context remain available.
+    const selected = filtered.length > 0 ? filtered : results;
+
+    return selected.map((res: any) => ({
       id: res.id,
       text: (res.metadata?.text as string) || "Metadata missing",
-      page: res.metadata?.page as number, // Pull the Breadcrumb
+      page: res.metadata?.page as number,
+      score: res.score as number | undefined,
     }));
   } catch (error) {
     console.error("❌ Retrieval Error:", error);

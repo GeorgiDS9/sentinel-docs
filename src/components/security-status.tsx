@@ -28,7 +28,7 @@ export function SecurityStatus({
     judge?.verdict === "PASSED"
       ? "text-emerald-400"
       : judge?.verdict === "FAILED"
-        ? "text-red-400/80"
+        ? "text-red-500/75"
         : "text-amber-400/80";
 
   const JudgeIcon = judge?.verdict === "PASSED" ? ShieldCheck : ShieldAlert;
