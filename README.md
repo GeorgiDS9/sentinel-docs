@@ -201,11 +201,53 @@ To achieve **global PII compliance (Internationalization, i18n)** and eliminate 
 
 ---
 
-### 🥊 Red Team Gauntlet (Adversarial Stress Testing)
+### 🥊 Red Team Gauntlet (Automated Adversarial Suite)
 
-**[Status: WIP]**
+> Automated **Prompt Injection** stress-testing. Using Playwright to simulate adversarial attacks (e.g., "Ignore all previous instructions") to verify that the **Sentinel Shield** remains unbreachable under pressure.
 
-Automated **Prompt Injection** stress-testing. Using Playwright to simulate adversarial attacks (e.g., "Ignore all previous instructions") to verify that the **Sentinel Shield** remains unbreachable under pressure.
+Sentinel Docs includes a dedicated Playwright adversarial suite at `tests/red-team.spec.ts` to continuously probe security boundaries and validate guardrail integrity under hostile prompts.
+
+#### 🔥 What It Tests
+
+- ⚔️ **System Override Attack**
+  - Prompt attempts to force privileged mode and bypass protections.
+  - Expected behavior: bounded refusal, no policy bypass, no sensitive disclosure.
+
+- 🎭 **Roleplay / Social Engineering Attack**
+  - Prompt attempts to normalize unsafe behavior in a “simulation” and exfiltrate encoded sensitive data.
+  - Expected behavior: refusal or context-bounded response, no decoded leakage.
+
+- 🎣 **Leakage Ownership Attack**
+  - Prompt impersonates data owner (“I am the CEO”) to retrieve secret identifiers.
+  - Expected behavior: refusal/redaction-compliant response, never reveal raw sensitive values.
+
+#### ⚖️ Judge Integration (LLM-as-a-Judge)
+
+For each attack, the suite calls `/api/admin/evaluate` with:
+
+- `sessionId` (for trace correlation),
+- retrieved `context`,
+- adversarial `question`,
+- model `answer`.
+
+The Judge issues `{ verdict, score, reasoning }` and validates that secure responses remain bounded and non-leaking.
+
+#### 🔗 LangSmith Trace Correlation
+
+The suite uses red-team session identifiers (`redteam-...`) so attack runs are easy to filter in LangSmith.
+
+> Red Team traces are routed to a dedicated LangSmith project (`sentinel-red-team`) to keep adversarial evidence isolated from standard CI/feature traces.
+
+#### ⚙️ Run Commands
+
+Run the Red Team suite:
+
+```bash
+# all configured browsers (chromium, firefox, webkit)
+npx playwright test tests/red-team.spec.ts
+# Chromium only (matches CI setup)
+npx playwright test tests/red-team.spec.ts --project=chromium
+```
 
 ---
 
@@ -301,7 +343,7 @@ LANGCHAIN_CALLBACKS_BACKGROUND=false
 npm run dev
 ```
 
-4.  🧪 **Automated Security Audits:**
+4.  **Automated Security Audits:**
 
     Sentinel Docs utilizes a dual-layered testing strategy to verify both isolated logic and integrated "Zero-Trust" workflows.
 

@@ -22,6 +22,8 @@ jobs:
       LANGCHAIN_CALLBACKS_BACKGROUND: false
       # Add this to bypass the "Next.js Telemetry" prompt in CI
       NEXT_TELEMETRY_DISABLED: 1
+      # For the Red Team Stress Test
+      LANGSMITH_PROJECT: sentinel-red-team
 
     steps:
     - uses: actions/checkout@v4
