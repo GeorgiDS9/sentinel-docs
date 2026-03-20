@@ -33,9 +33,9 @@ jobs:
       run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
-    - name: Run baseline Playwright audit
+    - name: Run Playwright baseline suite
       run: npx playwright test tests/sentinel-audit.spec.ts --project=chromium
-    - name: Run Red Team gauntlet
+    - name: Run Playwright Red-Team suite
       env:
         LANGSMITH_PROJECT: sentinel-red-team
       run: npx playwright test tests/red-team.spec.ts --project=chromium
