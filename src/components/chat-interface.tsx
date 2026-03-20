@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { z } from "zod";
 
 import { useCompletion } from "@ai-sdk/react";
 import { ArrowUpRight, Sparkles } from "lucide-react";
@@ -12,12 +13,24 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 
+const ScorecardResponseSchema = z.object({
+  score: z.number().min(0).max(1),
+  reasoning: z.string(),
+  verdict: z.enum(["PASSED", "FAILED", "NEEDS_REVIEW"]),
+});
+
+type ScorecardResponse = z.infer<typeof ScorecardResponseSchema>;
+
 export function ChatInterface() {
   const sessionId = useSessionId();
   const { toast } = useToast();
 
   const [sources, setSources] = useState<RetrievedChunk[]>([]);
+  const sourcesRef = useRef<RetrievedChunk[]>([]);
   const [hasStarted, setHasStarted] = useState(false);
+
+  const [lastAudit, setLastAudit] = useState<ScorecardResponse | null>(null);
+  const [isAuditing, setIsAuditing] = useState(false);
 
   const {
     completion,
@@ -30,6 +43,54 @@ export function ChatInterface() {
     api: "/api/chat",
     body: { sessionId },
     streamProtocol: "text",
+
+    onFinish: async (prompt: string, completionText: string) => {
+      // Post-response governance audit: evaluate grounding using the same retrieved context.
+      const contextChunks = sourcesRef.current.map((s) => s.text);
+
+      if (!contextChunks.length) {
+        console.warn(
+          "[Sentinel Audit] No context chunks available; skipping judge.",
+        );
+        return;
+      }
+
+      try {
+        setIsAuditing(true);
+
+        const res = await fetch("/api/admin/evaluate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sessionId,
+            context: contextChunks,
+            question: prompt,
+            answer: completionText,
+          }),
+        });
+
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          console.warn("[Sentinel Audit] Evaluate failed:", res.status, text);
+          return;
+        }
+
+        const data = await res.json();
+        const parsed = ScorecardResponseSchema.parse(data);
+
+        setLastAudit(parsed);
+
+        console.log(
+          `[Sentinel Audit] Score: ${parsed.score} | Verdict: ${parsed.verdict}`,
+        );
+      } catch (e) {
+        console.warn("[Sentinel Audit] Judge failure:", e);
+      } finally {
+        setIsAuditing(false);
+      }
+    },
   });
 
   const showWelcome = !hasStarted && !completion && !isLoading;
@@ -76,7 +137,9 @@ export function ChatInterface() {
       }
 
       const data = (await response.json()) as { sources?: RetrievedChunk[] };
-      setSources(data.sources ?? []);
+      const nextSources = data.sources ?? [];
+      setSources(nextSources);
+      sourcesRef.current = nextSources;
     } catch (err) {
       toast({
         title: "Source retrieval failed",
@@ -133,29 +196,55 @@ export function ChatInterface() {
           )}
 
           {completion && (
-            <div className="flex justify-start">
-              <div className="inline-flex max-w-[85%] items-start gap-2 rounded-2xl bg-slate-900/80 px-3 py-2 text-xs text-slate-50 shadow-sm ring-1 ring-white/10">
-                <div className="mt-[1px]">
-                  <div className="inline-flex size-5 items-center justify-center rounded-full bg-violet-500/20 text-violet-200 ring-1 ring-violet-400/40">
-                    <Sparkles className="size-3" />
+            <div className="flex flex-col gap-2 justify-start">
+              <div className="flex justify-start">
+                <div className="inline-flex max-w-[85%] items-start gap-2 rounded-2xl bg-slate-900/80 px-3 py-2 text-xs text-slate-50 shadow-sm ring-1 ring-white/10">
+                  <div className="mt-[1px]">
+                    <div className="inline-flex size-5 items-center justify-center rounded-full bg-violet-500/20 text-violet-200 ring-1 ring-violet-400/40">
+                      <Sparkles className="size-3" />
+                    </div>
                   </div>
+                  <p className="whitespace-pre-wrap text-[11px] leading-relaxed md:text-xs">
+                    {completion}
+                  </p>
                 </div>
-                <p className="whitespace-pre-wrap text-[11px] leading-relaxed md:text-xs">
-                  {completion}
-                </p>
               </div>
+
+              {isAuditing && (
+                <div className="text-[10px] text-slate-400">
+                  Sentinel Audit Status: evaluating grounding…
+                </div>
+              )}
+
+              {!isAuditing && lastAudit && (
+                <div className="text-[10px] text-slate-400 font-bold">
+                  Sentinel Audit Status:{" "}
+                  <span
+                    className={
+                      lastAudit.verdict === "PASSED"
+                        ? "text-emerald-400"
+                        : lastAudit.verdict === "FAILED"
+                          ? "text-red-400/80"
+                          : "text-amber-400/80"
+                    }
+                  >
+                    {lastAudit.verdict}
+                  </span>{" "}
+                  (score: {lastAudit.score.toFixed(2)})
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
 
       <form
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
+          // Prevent default immediately to avoid synthetic event pooling issues
+          event.preventDefault();
+
           const value = input.trim();
-          if (!value) {
-            event.preventDefault();
-            return;
-          }
+          if (!value) return;
 
           // Check for ingestion
           const isIngested =
@@ -163,7 +252,6 @@ export function ChatInterface() {
             window.localStorage.getItem("sentinel-docs-ingested");
 
           if (!isIngested) {
-            event.preventDefault();
             toast({
               title: "Upload a sensitive PDF first",
               description:
@@ -173,13 +261,15 @@ export function ChatInterface() {
           }
 
           setHasStarted(true);
-          void fetchSources(value);
-          // Trigger the AI stream
-          handleSubmit(event);
+
+          // Ensure the judge sees the same retrieved context used for grounding.
+          await fetchSources(value);
+
+          // Trigger the AI stream (do NOT pass the pooled event)
+          handleSubmit();
         }}
         className="mt-3 flex items-center gap-2 rounded-2xl border border-white/15 bg-slate-950/70 p-2 text-xs shadow-inner shadow-slate-950/60"
       >
-        {/* Input + Button unchanged */}
         <Input
           name="prompt"
           value={input}
@@ -220,7 +310,6 @@ export function ChatInterface() {
                 }
               }}
             >
-              {/* 🟢 THE BREADCRUMB: Shows [Page X] if metadata exists */}
               <span className="font-medium">
                 {source.page ? `[Page ${source.page}]` : `Source ${index + 1}`}
               </span>

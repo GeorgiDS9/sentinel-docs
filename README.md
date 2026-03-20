@@ -30,52 +30,6 @@
 
 ---
 
-## 🏗️ Technical Foundation (The "Sentinel" Edge)
-
-_Drawing on 5 years of cybersecurity experience at **Trend Micro ( Trend AI)**, this project solves the "AI Data Leak" problem and treats AI as a security boundary through these layers of defense:_
-
-1.  **The Interceptor Layer:** Sanitizes raw text via a normalization pipeline before chunking, ensuring only "Safe" data travels to the cloud.
-2.  **The Verification Layer:** Retains "Source Pills" for human auditability, ensuring that even sanitized responses are verifiable.
-3.  **The Infrastructure Layer:** Solves Node.js/Browser environment mismatches (DOMMatrix polyfills) to enable reliable server-side PDF processing in Next.js 15.
-4.  **Infrastructure Resilience:** Resolved Next.js 15 hydration mismatches using **Dynamic Client-Only Islands** (`next/dynamic`) and hardened CSS against browser autofill overrides.
-5.  **The Economic Shield (Edge-Level Rate Limiting):** Integrates **Upstash Redis** to prevent resource abuse and uncontrolled cloud expenditure, ensuring the RAG pipeline remains cost-efficient and available.
-6.  **System Telemetry & X-Ray:** Instrumented with **LangSmith** for traceability and audit visibility across ingestion, retrieval, and chat, with debugging support to validate retrieval accuracy and model behavior.
-7.  **The Evaluation Layer (Model Tiering):** Implements an "LLM-as-a-Judge" architecture, utilizing a high-reasoning model (GPT-4o) to perform deterministic audits on the output of the production model (GPT-4o-Mini), ensuring 100% Faithfulness and Context Grounding.
-
----
-
-## 🧪 Automated Testing Suite
-
-To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual-layered testing strategy to verify both isolated logic and integrated workflows.
-
-### **Phase 1: Unit & Logic Audits (Vitest)**
-
-- **DLP Engine Audit:** Validates that the `redactor.ts` successfully intercepts PII even when obscured by non-standard delimiters (spaces, dashes, dots).
-- **Schema Enforcement:** Verifies that **Zod** bouncers correctly reject unauthorized file types and oversized payloads before they reach the RAG engine.
-- **State Hydration:** Ensures the security dashboard correctly recovers session state from `localStorage` without UI flicker or hydration mismatches.
-
-### **Phase 2: End-to-End Verification (Playwright)**
-
-- **Full-Cycle RAG Verification:** Automating the full ingestion-to-chat lifecycle to verify grounding accuracy and multi-vector source retrieval (source pill generation).
-- **The Kill-Switch Protocol:** Validating that the "Purge" action successfully wipes both the Upstash Cloud namespace and the local browser cache.
-- **Rate Limit Enforcement:** Verifying that the **Upstash Redis** middleware correctly identifies and throttles excessive requests (e.g., more than 10 uploads/hour) to protect system resources.
-
-### ✅ Playwright Audit (Passed)
-
-![Sentinel Playwright Audit Passed](./docs/assets/sentinel-playwright-audit-passed.png)
-
-#### 🔍 Optional: Debug Logging for Playwright Audits
-
-When diagnosing flaky E2E behavior, add temporary log markers around each audit phase, as seen:
-
-```ts
-console.log("🧐 Auditing Grounding...");
-// ... assertions / waits ...
-console.log("✅ Grounding Verified");
-```
-
----
-
 ## 🛠️ Tech Stack
 
 - **Frontend:** **Next.js 15 (App Router), Tailwind CSS, Shadcn/UI (Obsidian Theme)**
@@ -86,8 +40,21 @@ console.log("✅ Grounding Verified");
 - **Security Engine:** Custom Regex-based Sanitization DLP & Defensive Prompt Engineering
 - **LLM & Embeddings:** **OpenAI `gpt-4o-mini` & `text-embedding-3-small`**
 - **Validation:** **Zod** (Strict Schema-based Data Contracts)
-- **Testing:** **Vitest** (Unit/Logic) & **Playwright** (E2E/Flow)
 - **AI Evaluation:** **GPT-4o** (The Judge) via Structured Outputs (Zod-governed JSON)
+- **Testing:** **Vitest** (Unit/Logic) & **Playwright** (E2E/Flow)
+
+---
+
+## 🏗️ Technical Foundation (The "Sentinel" Edge)
+
+_Drawing on 5 years of cybersecurity experience at **Trend Micro ( Trend AI)**, this project solves the "AI Data Leak" problem and treats AI as a security boundary through these layers of defense:_
+
+1.  **The Interceptor Layer:** Sanitizes raw text via a normalization pipeline before chunking, ensuring only "Safe" data travels to the cloud.
+2.  **The Verification Layer:** Retains "Source Pills" for human auditability, ensuring that even sanitized responses are verifiable.
+3.  **The Infrastructure Layer:** Solves Node.js/Browser environment mismatches (DOMMatrix polyfills) to enable reliable server-side PDF processing in Next.js 15.
+4.  **Infrastructure Resilience:** Resolved Next.js 15 hydration mismatches using **Dynamic Client-Only Islands** (`next/dynamic`) and hardened CSS against browser autofill overrides.
+5.  **The Economic Shield:** Integrates **Upstash Redis** to prevent resource abuse and uncontrolled cloud expenditure, ensuring the RAG pipeline remains cost-efficient and available.
+6.  **System Telemetry & The Evaluation Layer:** A dual-layer observability loop that utilizes System Telemetry (traceability and audit visibility across ingestion, retrieval, and chat) and Automated Evaluation (utilizing high-reasoning audit agents to verify output faithfulness and context grounding).
 
 ---
 
@@ -185,7 +152,7 @@ To verify the **DLP (Data Loss Prevention)** and **RAG Grounding** of the engine
 
 ---
 
-## 🔐 Input Security Contract
+### 🔐 Input Security Contract
 
 To ensure 100% redaction accuracy, Sentinel Docs enforces a **Standardized Data Contract**. For the DLP engine to identify and mask sensitive identifiers, please ensure your documents adhere to the following industry-standard formats:
 
@@ -214,11 +181,11 @@ To achieve **global PII compliance (Internationalization, i18n)** and eliminate 
 
 ## 🛰️ Security Observability, Audit Evidence & Compliance
 
-### 🕵️ Audit Visibility: The LangSmith X-Ray
+### 🕵️ Audit Visibility (LangSmith Traces)
 
-**System Telemetry:** Integrated **LangSmith** as a real-time "Flight Recorder" to provide an immutable audit trail of every RAG interaction, retrieval chunk, and prompt-level security decision.
+> **System Telemetry:** Integrated **LangSmith** as a real-time "Flight Recorder" to provide an immutable audit trail of every RAG interaction, retrieval chunk, and prompt-level security decision.
 
-**Proof of Guardrail:** This trace demonstrates the **Sentinel Security Assistant** successfully detecting an unredacted 16-digit pattern in the document context and executing a Sensitive Data Masking protocol to prevent a PII leak.
+> **Audit Evidence:** This trace demonstrates the **Sentinel Security Assistant** successfully detecting a 16-digit pattern in the document context and executing a **Sensitive Data Masking** protocol to prevent a leak.
 
 ![Sentinel Guardrail Audit](./docs/assets/sentinel-guardrail-audit.png)
 
@@ -226,13 +193,15 @@ To achieve **global PII compliance (Internationalization, i18n)** and eliminate 
 
 ### ⚖️ LLM-as-a-Judge (LangSmith Evals)
 
-**[Status: IN DEVELOPMENT]**
+> **Automated Quality Assurance (QA):** Automating the "Audit Handshake" via a second-layer **GPT-4o Judge**. This agent performs deterministic scoring for **Faithfulness** (Hallucination detection) and **Context Relevancy** to ensure semantic validation and 100% grounded answers.
 
-Automating the "Audit Handshake" by implementing a second-layer **GPT-4o Judge**. This agent performs deterministic scoring for **Faithfulness** (Hallucination detection) and **Context Relevancy** to ensure 100% grounded answers.
+> **Audit Evidence:** The screenshot below captures the **Sentinel Auditor** performing a post-response evaluation. It successfully verified that the assistant's refusal to provide a 16-digit credit card number was **Faithful** to the security context, resulting in a perfect **1.0 Accuracy Score**.
+
+![Sentinel Judge Audit](./docs/assets/sentinel-judge-audit.png)
 
 ---
 
-### 🥷🧨 Red Team Gauntlet (Adversarial Stress Testing)
+### 🧨 Red Team Gauntlet (Adversarial Stress Testing)
 
 **[Status: PLANNED]**
 
@@ -245,6 +214,38 @@ Automated **Prompt Injection** stress-testing. Using Playwright to simulate adve
 **[Status: PLANNED]**
 
 A dedicated **Governance Dashboard** mapping system performance directly to the **NIST AI Risk Management Framework**. This provides real-time "Evidence of Safety" for enterprise-grade deployment.
+
+---
+
+## 🧪 Automated Testing Suite
+
+To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual-layered testing strategy to verify both isolated logic and integrated workflows.
+
+### **Phase 1: Unit & Logic Audits (Vitest)**
+
+- **DLP Engine Audit:** Validates that the `redactor.ts` successfully intercepts PII even when obscured by non-standard delimiters (spaces, dashes, dots).
+- **Schema Enforcement:** Verifies that **Zod** bouncers correctly reject unauthorized file types and oversized payloads before they reach the RAG engine.
+- **State Hydration:** Ensures the security dashboard correctly recovers session state from `localStorage` without UI flicker or hydration mismatches.
+
+### **Phase 2: End-to-End Verification (Playwright)**
+
+- **Full-Cycle RAG Verification:** Automating the full ingestion-to-chat lifecycle to verify grounding accuracy and multi-vector source retrieval (source pill generation).
+- **The Kill-Switch Protocol:** Validating that the "Purge" action successfully wipes both the Upstash Cloud namespace and the local browser cache.
+- **Rate Limit Enforcement:** Verifying that the **Upstash Redis** middleware correctly identifies and throttles excessive requests (e.g., more than 10 uploads/hour) to protect system resources.
+
+### ✅ Playwright Audit (Passed)
+
+![Sentinel Playwright Audit Passed](./docs/assets/sentinel-playwright-audit-passed.png)
+
+#### 🔍 Optional: Debug Logging for Playwright Audits
+
+When diagnosing flaky E2E behavior, add temporary log markers around each audit phase, as seen:
+
+```ts
+console.log("🧐 Auditing Grounding...");
+// ... assertions / waits ...
+console.log("✅ Grounding Verified");
+```
 
 ---
 
