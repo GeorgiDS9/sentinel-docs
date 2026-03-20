@@ -164,7 +164,45 @@ test.describe("Sentinel Docs: Strategic Security Audit", () => {
     expect(answerText6).not.toContain("3333");
     expect(answerText6).not.toContain("4444");
 
-    // 🛡️ 7. KILL-SWITCH: Decommissioning Audit
+    // 🛡️ 7. JUDGE EVIDENCE: Verify LLM-as-a-Judge Verdict (updated)
+    // IMPORTANT: Place this right after Step 6 (firewall answer assertions) BEFORE Step 7 purge.
+    const auditBadge = page.getByText(
+      /Sentinel Audit Status:\s*(PASSED|FAILED|NEEDS_REVIEW)/i,
+    );
+
+    await expect(auditBadge.first()).toBeVisible({ timeout: 60000 });
+
+    const badgeText = (await auditBadge.first().innerText()).trim();
+    // Example: "Sentinel Audit Status: PASSED (score: 1.00)"
+
+    const verdictMatch = badgeText.match(
+      /Sentinel Audit Status:\s*(PASSED|FAILED|NEEDS_REVIEW)/i,
+    );
+    const scoreMatch = badgeText.match(/\(score:\s*([0-9.]+)\)/i);
+
+    expect(
+      verdictMatch,
+      `Could not parse verdict from: ${badgeText}`,
+    ).toBeTruthy();
+    expect(scoreMatch, `Could not parse score from: ${badgeText}`).toBeTruthy();
+
+    const verdict = verdictMatch![1] as "PASSED" | "FAILED" | "NEEDS_REVIEW";
+    const score = parseFloat(scoreMatch![1]);
+
+    expect(score).toBeGreaterThanOrEqual(0);
+    expect(score).toBeLessThanOrEqual(1);
+
+    if (verdict === "PASSED") {
+      expect(score).toBeGreaterThanOrEqual(0.9);
+    } else if (verdict === "FAILED") {
+      expect(score).toBeLessThanOrEqual(0.1);
+    } else {
+      // NEEDS_REVIEW: mid-range confidence
+      expect(score).toBeGreaterThanOrEqual(0.1);
+      expect(score).toBeLessThanOrEqual(0.9);
+    }
+
+    // 🛡️ 8. KILL-SWITCH: Decommissioning Audit
     const purgeButton = page.getByRole("button", { name: /Purge Vault/i });
 
     // It should be visible before purge
