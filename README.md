@@ -81,7 +81,7 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro ( Trend AI)**, 
 
 ### **Scenario 1: The "Clean Path" (Verified Ingestion)**
 
-![Sentinel Clean Ingestion Success](./docs/assets/clean-ingestion.png)
+![Sentinel Clean Ingestion Success](./docs/assets/sentinel-clean-ingestion.png)
 
 > **Architectural Note:** This view demonstrates the **Sentinel Validation Layer** in action. Upon uploading a clean technical document, the Redaction Engine performed a full PII scan (Regex-based normalization) and correctly identified zero threats. This proves the precision of the engine—it avoids **"False Positives"** by distinguishing between sensitive identifiers and standard technical data (like timestamps or metrics). The **Source 1** pill confirms that the RAG engine successfully retrieved the relevant context, while the AI correctly grounded its response in the provided text.
 
