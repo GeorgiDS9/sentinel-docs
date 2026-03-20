@@ -13,7 +13,7 @@
 
 ---
 
-## 🛡️ Core Security Architecture
+## 🧱 Core Security Architecture
 
 - **Automated PII Redaction:** In-flight Regex-based sanitization engine that masks Emails, Phone Numbers, Credit Cards, and SSNs _before_ data is vectorized.
 - **Real-Time Security Auditing (v1):** A "Security Shield" handshake (UI toast) that provides users with immediate feedback via granular "Redaction Reports" (PII counts) upon document ingestion.
@@ -26,6 +26,7 @@
 - **Verifiable Metadata Breadcrumbs (v2):** Extends the RAG pipeline to tag cloud vectors with specific PDF page indices, transforming generic source pills into **Legal-Grade Citations** (e.g., `[Page 1]`).
 - **Edge-Level Rate Limiting:** Integrates **Upstash Redis** at the network edge to prevent resource abuse and "Wallet-Drain" attacks, ensuring the RAG pipeline remains cost-efficient and available for authorized sessions.
 - **Observability as Audit:** Integrated **LangSmith** to provide an immutable audit trail of every interaction. This allows for deep-dive analysis of redaction triggers, grounding accuracy, and the identification of "soft-failure" hallucinations before they reach the user.
+- **Multi-Model Consensus (The Judge):** Implements an Evaluator-Optimizer loop by utilizing GPT-4o as a high-reasoning "Audit Layer." This secondary model performs a sub-millisecond deterministic check on the primary response to verify Faithfulness and Context Grounding before the final stream is finalized.
 
 ---
 
@@ -39,6 +40,7 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro ( Trend AI)**, 
 4.  **Infrastructure Resilience:** Resolved Next.js 15 hydration mismatches using **Dynamic Client-Only Islands** (`next/dynamic`) and hardened CSS against browser autofill overrides.
 5.  **The Economic Shield (Edge-Level Rate Limiting):** Integrates **Upstash Redis** to prevent resource abuse and uncontrolled cloud expenditure, ensuring the RAG pipeline remains cost-efficient and available.
 6.  **System Telemetry & X-Ray:** Instrumented with **LangSmith** for traceability and audit visibility across ingestion, retrieval, and chat, with debugging support to validate retrieval accuracy and model behavior.
+7.  **The Evaluation Layer (Model Tiering):** Implements an "LLM-as-a-Judge" architecture, utilizing a high-reasoning model (GPT-4o) to perform deterministic audits on the output of the production model (GPT-4o-Mini), ensuring 100% Faithfulness and Context Grounding.
 
 ---
 
@@ -77,7 +79,7 @@ console.log("✅ Grounding Verified");
 ## 🛠️ Tech Stack
 
 - **Frontend:** **Next.js 15 (App Router), Tailwind CSS, Shadcn/UI (Obsidian Theme)**
-- **Vector Storage:** Ephemeral Session Stores migarated to **Upstash Vector** (Serverless / COSINE / 1536d)
+- **Vector Storage:** Ephemeral Session Stores migrated to **Upstash Vector** (Serverless / COSINE / 1536d)
 - **Global Rate Limiting:** **Upstash Redis** (Edge-level "Wallet Protection" for AI resources)
 - **AI Orchestration:** **LangChain.js** & **Vercel AI SDK**
 - **Observability:** **LangSmith** (Telemetry & Audit Traces)
@@ -85,6 +87,7 @@ console.log("✅ Grounding Verified");
 - **LLM & Embeddings:** **OpenAI `gpt-4o-mini` & `text-embedding-3-small`**
 - **Validation:** **Zod** (Strict Schema-based Data Contracts)
 - **Testing:** **Vitest** (Unit/Logic) & **Playwright** (E2E/Flow)
+- **AI Evaluation:** **GPT-4o** (The Judge) via Structured Outputs (Zod-governed JSON)
 
 ---
 
@@ -101,8 +104,9 @@ console.log("✅ Grounding Verified");
 - [x] **Infrastructure Shield:** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
 - [x] **E2E Security Auditing:** Engineered a **Playwright** adversarial suite integrated with **GitHub Actions (CI/CD)**. Every push triggers a robotic "Security Audit" that verifies PII redaction, Upstash Vector grounding, and economic rate-limiting.
 - [x] **Observability:** Production-grade tracing and debugging with **LangSmith**.
-- [ ] **LLM-as-a-Judge:** Integrating automated scoring for Faithfulness and Relevancy via LangSmith Evals.
+- [x] **LLM-as-a-Judge:** Integrating automated scoring for Faithfulness and Relevancy via LangSmith Evals.
 - [ ] **Red Team Gauntlet:** Automated prompt injection stress-testing.
+- [ ] **Compliance Dashboard:** Real-time **NIST AI RMF** alignment and audit evidence visualization.
 
 ---
 
@@ -271,6 +275,17 @@ UPSTASH_VECTOR_REST_TOKEN=...
 # 🛡️ Economic Shield: Upstash Redis (Edge Rate-Limiting)
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...
+
+# 🛰️ Telemetry & Observability (LangSmith)
+LANGSMITH_TRACING=true
+LANGCHAIN_TRACING_V2=true
+# Choose your LangSmith endpoint (US or EU)
+LANGSMITH_ENDPOINT=https://...
+LANGSMITH_API_KEY=...
+# Pick a name for your project in your .env.local file. When your app runs its first chat, the LangSmith SDK sends the trace (with its name) to the cloud, where it automatically appears in the LangSmith dashboard under Tracing.
+LANGSMITH_PROJECT=...
+# Forces the trace to finish before Next.js shuts down
+LANGCHAIN_CALLBACKS_BACKGROUND=false
 ```
 
 3.  **Development & Security Audit:**
