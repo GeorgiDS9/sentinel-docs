@@ -15,6 +15,11 @@ jobs:
       UPSTASH_VECTOR_REST_TOKEN: ${{ secrets.UPSTASH_VECTOR_REST_TOKEN }}
       UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
       UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+      LANGSMITH_TRACING: true
+      LANGSMITH_ENDPOINT: ${{ secrets.LANGSMITH_ENDPOINT }}
+      LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+      LANGSMITH_PROJECT: ${{ secrets.LANGSMITH_PROJECT }}
+      LANGCHAIN_CALLBACKS_BACKGROUND: false
       # Add this to bypass the "Next.js Telemetry" prompt in CI
       NEXT_TELEMETRY_DISABLED: 1
 
