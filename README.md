@@ -201,9 +201,9 @@ To achieve **global PII compliance (Internationalization, i18n)** and eliminate 
 
 ---
 
-### 🧨 Red Team Gauntlet (Adversarial Stress Testing)
+### 🥊 Red Team Gauntlet (Adversarial Stress Testing)
 
-**[Status: PLANNED]**
+**[Status: WIP]**
 
 Automated **Prompt Injection** stress-testing. Using Playwright to simulate adversarial attacks (e.g., "Ignore all previous instructions") to verify that the **Sentinel Shield** remains unbreachable under pressure.
 
@@ -211,7 +211,7 @@ Automated **Prompt Injection** stress-testing. Using Playwright to simulate adve
 
 ### 📊 Compliance Dashboard (NIST AI RMF Alignment)
 
-**[Status: PLANNED]**
+**[Status: NEXT]**
 
 A dedicated **Governance Dashboard** mapping system performance directly to the **NIST AI Risk Management Framework**. This provides real-time "Evidence of Safety" for enterprise-grade deployment.
 
@@ -227,13 +227,17 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 - **Schema Enforcement:** Verifies that **Zod** bouncers correctly reject unauthorized file types and oversized payloads before they reach the RAG engine.
 - **State Hydration:** Ensures the security dashboard correctly recovers session state from `localStorage` without UI flicker or hydration mismatches.
 
+#### ✅ Viest Coverage (Unit Tests 100% )
+
+![Vitest Coverage (Unit Tests 100%)](./docs/assets/sentinel-vitest-coverage.png)
+
 ### **Phase 2: End-to-End Verification (Playwright)**
 
 - **Full-Cycle RAG Verification:** Automating the full ingestion-to-chat lifecycle to verify grounding accuracy and multi-vector source retrieval (source pill generation).
 - **The Kill-Switch Protocol:** Validating that the "Purge" action successfully wipes both the Upstash Cloud namespace and the local browser cache.
 - **Rate Limit Enforcement:** Verifying that the **Upstash Redis** middleware correctly identifies and throttles excessive requests (e.g., more than 10 uploads/hour) to protect system resources.
 
-### ✅ Playwright Audit (Passed)
+#### ✅ Playwright Audit (Passed)
 
 ![Sentinel Playwright Audit Passed](./docs/assets/sentinel-playwright-audit-passed.png)
 
