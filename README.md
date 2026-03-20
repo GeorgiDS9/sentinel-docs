@@ -25,6 +25,7 @@
 - **Multi-Vector Retrieval Integrity (v1):** Leverages **Upstash namespaces** to physically isolate user data, ensuring that generic "Source Pills" (e.g., `Source 1`) and document context are strictly confined to the authorized session.
 - **Verifiable Metadata Breadcrumbs (v2):** Extends the RAG pipeline to tag cloud vectors with specific PDF page indices, transforming generic source pills into **Legal-Grade Citations** (e.g., `[Page 1]`).
 - **Edge-Level Rate Limiting:** Integrates **Upstash Redis** at the network edge to prevent resource abuse and "Wallet-Drain" attacks, ensuring the RAG pipeline remains cost-efficient and available for authorized sessions.
+- **Observability as Audit:** Integrated **LangSmith** to provide an immutable audit trail of every interaction. This allows for deep-dive analysis of redaction triggers, grounding accuracy, and the identification of "soft-failure" hallucinations before they reach the user.
 
 ---
 
@@ -36,7 +37,8 @@ _Drawing on 5 years of cybersecurity experience at **Trend Micro ( Trend AI)**, 
 2.  **The Verification Layer:** Retains "Source Pills" for human auditability, ensuring that even sanitized responses are verifiable.
 3.  **The Infrastructure Layer:** Solves Node.js/Browser environment mismatches (DOMMatrix polyfills) to enable reliable server-side PDF processing in Next.js 15.
 4.  **Infrastructure Resilience:** Resolved Next.js 15 hydration mismatches using **Dynamic Client-Only Islands** (`next/dynamic`) and hardened CSS against browser autofill overrides.
-5.  **The Economic Shield:** Integrates **Upstash Redis** to prevent resource abuse and uncontrolled cloud expenditure, ensuring the RAG pipeline remains cost-efficient and available.
+5.  **The Economic Shield (Edge-Level Rate Limiting):** Integrates **Upstash Redis** to prevent resource abuse and uncontrolled cloud expenditure, ensuring the RAG pipeline remains cost-efficient and available.
+6.  **System Telemetry & X-Ray:** Instrumented with **LangSmith** for traceability and audit visibility across ingestion, retrieval, and chat, with debugging support to validate retrieval accuracy and model behavior.
 
 ---
 
@@ -50,7 +52,7 @@ To maintain a "Production-Ready" security posture, Sentinel Docs utilizes a dual
 - **Schema Enforcement:** Verifies that **Zod** bouncers correctly reject unauthorized file types and oversized payloads before they reach the RAG engine.
 - **State Hydration:** Ensures the security dashboard correctly recovers session state from `localStorage` without UI flicker or hydration mismatches.
 
-### **Phase 2: End-to-End Verification (Playwright - WIP)**
+### **Phase 2: End-to-End Verification (Playwright)**
 
 - **Full-Cycle RAG Verification:** Automating the full ingestion-to-chat lifecycle to verify grounding accuracy and multi-vector source retrieval (source pill generation).
 - **The Kill-Switch Protocol:** Validating that the "Purge" action successfully wipes both the Upstash Cloud namespace and the local browser cache.
@@ -78,6 +80,7 @@ console.log("✅ Grounding Verified");
 - **Vector Storage:** Ephemeral Session Stores migarated to **Upstash Vector** (Serverless / COSINE / 1536d)
 - **Global Rate Limiting:** **Upstash Redis** (Edge-level "Wallet Protection" for AI resources)
 - **AI Orchestration:** **LangChain.js** & **Vercel AI SDK**
+- **Observability:** **LangSmith** (Telemetry & Audit Traces)
 - **Security Engine:** Custom Regex-based Sanitization DLP & Defensive Prompt Engineering
 - **LLM & Embeddings:** **OpenAI `gpt-4o-mini` & `text-embedding-3-small`**
 - **Validation:** **Zod** (Strict Schema-based Data Contracts)
@@ -97,6 +100,9 @@ console.log("✅ Grounding Verified");
 - [x] **The "Kill Switch":** One-click session purge for total data decommissioning.
 - [x] **Infrastructure Shield:** Integrating **Upstash Redis** for global edge-level rate limiting (Wallet Protection).
 - [x] **E2E Security Auditing:** Engineered a **Playwright** adversarial suite integrated with **GitHub Actions (CI/CD)**. Every push triggers a robotic "Security Audit" that verifies PII redaction, Upstash Vector grounding, and economic rate-limiting.
+- [x] **Observability:** Production-grade tracing and debugging with **LangSmith**.
+- [ ] **LLM-as-a-Judge:** Integrating automated scoring for Faithfulness and Relevancy via LangSmith Evals.
+- [ ] **Red Team Gauntlet:** Automated prompt injection stress-testing.
 
 ---
 
@@ -153,8 +159,6 @@ console.log("✅ Grounding Verified");
 > - **🛡️ The Security Toast:** Notice the red "Destructive" toast at the top. This is the UI's response to a **429 (Too Many Requests)** status from the middleware, informing the user that the "Security Shield is Active" and their request has been throttled.
 > - **🚫 The Vanishing Vault:** As marked on the screenshot, the **Purge Vault** button has disappeared. This is an intentional state-sync; because the 11th upload was blocked at the Edge, no new data entered the cloud, and the UI correctly reset to a "Pre-Ingestion" state to avoid "Ghost Sessions."
 
----
-
 ## 🧪 The "Sentinel" Stress Test
 
 To verify the **DLP (Data Loss Prevention)** and **RAG Grounding** of the engine, I utilized the following "Adversarial" data points in a test PDF. This ensures the model is retrieving specific context while strictly adhering to redaction rules:
@@ -201,6 +205,42 @@ To achieve **global PII compliance (Internationalization, i18n)** and eliminate 
 1.  **AI-Based NER:** Transitioning from static Regex to **Named Entity Recognition (NER)** models (e.g., Microsoft Presidio) for semantic PII detection.
 2.  **Dedicated Libraries:** Implementing industry-standard validation libraries like **`google-libphonenumber`** to handle global regional formatting with mathematical precision.
 3.  **Output Interception:** Implementing a dual-pass filter to sanitize the AI's response before it is rendered to the user, ensuring a final fail-safe for any PII that bypassed ingestion filters.
+
+---
+
+## 🛰️ Security Observability, Audit Evidence & Compliance
+
+### 🕵️ Audit Visibility: The LangSmith X-Ray
+
+**System Telemetry:** Integrated **LangSmith** as a real-time "Flight Recorder" to provide an immutable audit trail of every RAG interaction, retrieval chunk, and prompt-level security decision.
+
+**Proof of Guardrail:** This trace demonstrates the **Sentinel Security Assistant** successfully detecting an unredacted 16-digit pattern in the document context and executing a Sensitive Data Masking protocol to prevent a PII leak.
+
+![Sentinel Guardrail Audit](./docs/assets/sentinel-guardrail-audit.png)
+
+---
+
+### ⚖️ LLM-as-a-Judge (LangSmith Evals)
+
+**[Status: IN DEVELOPMENT]**
+
+Automating the "Audit Handshake" by implementing a second-layer **GPT-4o Judge**. This agent performs deterministic scoring for **Faithfulness** (Hallucination detection) and **Context Relevancy** to ensure 100% grounded answers.
+
+---
+
+### 🥷🧨 Red Team Gauntlet (Adversarial Stress Testing)
+
+**[Status: PLANNED]**
+
+Automated **Prompt Injection** stress-testing. Using Playwright to simulate adversarial attacks (e.g., "Ignore all previous instructions") to verify that the **Sentinel Shield** remains unbreachable under pressure.
+
+---
+
+### 📊 Compliance Dashboard (NIST AI RMF Alignment)
+
+**[Status: PLANNED]**
+
+A dedicated **Governance Dashboard** mapping system performance directly to the **NIST AI Risk Management Framework**. This provides real-time "Evidence of Safety" for enterprise-grade deployment.
 
 ---
 
