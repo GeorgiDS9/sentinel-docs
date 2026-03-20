@@ -8,7 +8,6 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       UPSTASH_VECTOR_REST_URL: ${{ secrets.UPSTASH_VECTOR_REST_URL }}
@@ -22,9 +21,6 @@ jobs:
       LANGCHAIN_CALLBACKS_BACKGROUND: false
       # Add this to bypass the "Next.js Telemetry" prompt in CI
       NEXT_TELEMETRY_DISABLED: 1
-      # For the Red Team Stress Test
-      LANGSMITH_PROJECT: sentinel-red-team
-
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -32,11 +28,15 @@ jobs:
         node-version: lts/*
         cache: npm
     - name: Install dependencies
-      run: npm ci 
+      run: npm ci
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
-    - name: Run Playwright tests
-      run: npx playwright test --project=chromium
+    - name: Run baseline Playwright audit
+      run: npx playwright test tests/sentinel-audit.spec.ts --project=chromium
+    - name: Run Red Team gauntlet
+      env:
+        LANGSMITH_PROJECT: sentinel-red-team
+      run: npx playwright test tests/red-team.spec.ts --project=chromium
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
