@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
 import {
   AUDIT_STATS_KEY,
   benchmarkRows,
@@ -19,6 +18,7 @@ import {
 } from "./constants";
 import { getHealthHint, getHealthStatus } from "./helpers";
 import type { AuditStats, SessionUsage } from "./types";
+import { AuditStatsSchema, JudgeHistorySchema } from "./validation";
 import { ComplianceHealthCard } from "./components/compliance-health-card";
 import { EconomicShieldCard } from "./components/economic-shield-card";
 import { ModelBenchmarkingCard } from "./components/model-benchmarking-card";
@@ -26,15 +26,6 @@ import { ComplianceMatrixCard } from "./components/compliance-matrix-card";
 import { RedactionCounterCard } from "./components/redaction-counter-card";
 import { AuditActionsCard } from "./components/audit-actions-card";
 import { IntegrityHeatmapCard } from "./components/integrity-heatmap-card";
-
-const AuditStatsSchema = z.object({
-  emails: z.number().int().nonnegative(),
-  phones: z.number().int().nonnegative(),
-  cards: z.number().int().nonnegative(),
-  ssns: z.number().int().nonnegative(),
-});
-
-const JudgeHistorySchema = z.array(z.number().min(0).max(1));
 
 export default function GovernanceDashboardPage() {
   const [stats, setStats] = useState<AuditStats>(EMPTY_STATS);
