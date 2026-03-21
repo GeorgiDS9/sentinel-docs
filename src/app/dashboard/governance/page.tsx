@@ -293,12 +293,24 @@ export default function GovernanceDashboardPage() {
 
           <div className="overflow-x-auto rounded-xl border border-white/10">
             <table className="w-full min-w-[760px] text-left text-sm">
+              <caption className="sr-only">
+                NIST AI RMF compliance mapping of Sentinel controls, evidence,
+                and audit details.
+              </caption>
               <thead className="bg-slate-950/40 text-[11px] uppercase tracking-wider text-slate-300/80">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">NIST Function</th>
-                  <th className="px-4 py-3 font-semibold">Requirement</th>
-                  <th className="px-4 py-3 font-semibold">Evidence</th>
-                  <th className="px-4 py-3 font-semibold">Audit Detail</th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    NIST Function
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Requirement
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Evidence
+                  </th>
+                  <th scope="col" className="px-4 py-3 font-semibold">
+                    Audit Detail
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -368,19 +380,28 @@ export default function GovernanceDashboardPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                <a
-                  href={langsmithTraceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium shadow-sm backdrop-blur transition-colors ${
-                    sessionId
-                      ? "border-sky-400/30 bg-sky-500/10 text-sky-100 hover:bg-sky-500/20"
-                      : "border-white/15 bg-slate-900/40 text-slate-400 cursor-not-allowed pointer-events-none"
-                  }`}
-                >
-                  <ExternalLink className="size-3.5" />
-                  <span>Open LangSmith Trace</span>
-                </a>
+                {sessionId ? (
+                  <a
+                    href={langsmithTraceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-100 shadow-sm backdrop-blur transition-colors hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300/70"
+                  >
+                    <ExternalLink className="size-3.5" />
+                    <span>Open LangSmith Trace</span>
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="No active session"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-slate-900/40 px-3 py-1 text-xs font-medium text-slate-400 shadow-sm backdrop-blur cursor-not-allowed"
+                  >
+                    <ExternalLink className="size-3.5" />
+                    <span>Open LangSmith Trace</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   disabled
