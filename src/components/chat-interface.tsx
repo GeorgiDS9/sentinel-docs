@@ -291,6 +291,8 @@ export function ChatInterface({
         <Button
           type="submit"
           size="icon-sm"
+          aria-label="Send message"
+          title="Send message"
           className="shrink-0 rounded-xl bg-emerald-500/90 text-slate-950 shadow-lg shadow-emerald-500/40 hover:bg-emerald-400"
           disabled={isLoading || !input.trim()}
         >
