@@ -253,6 +253,13 @@ RED_TEAM_SESSION_ID=redteam-local-00000001 npx playwright test tests/red-team.sp
 RED_TEAM_SESSION_ID=redteam-local-00000001 RED_TEAM_REPORT=true npx playwright test tests/red-team.spec.ts --project=chromium
 ```
 
+#### 🧾 Adversarial Resilience Report
+
+For formal adversarial findings and evidence framing, see
+[`SECURITY_ADVISORY.md`](./SECURITY_ADVISORY.md).
+
+> Includes observed outcomes for injection resistance, redaction persistence, and LangSmith-backed audit evidence.
+
 ---
 
 ### 📊 Compliance Dashboard (NIST AI RMF Alignment)
