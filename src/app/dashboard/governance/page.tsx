@@ -448,6 +448,13 @@ export default function GovernanceDashboardPage() {
                   <div className="text-[10px] font-mono font-semibold text-slate-950">
                     {score.toFixed(2)}
                   </div>
+                  <span className="sr-only">
+                    {score >= 0.9
+                      ? "Compliant"
+                      : score >= 0.7
+                        ? "Review"
+                        : "Violation"}
+                  </span>
                 </div>
               ))}
             </div>
