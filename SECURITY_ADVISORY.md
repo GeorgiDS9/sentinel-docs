@@ -1,6 +1,10 @@
 # 🛡️ Sentinel Adversarial Resilience Report
 
-This advisory summarizes defensive behaviors observed in Sentinel Docs during automated adversarial testing (the Red Team suite).
+This advisory documents security behaviors observed in Sentinel Docs under structured adversarial testing (the Red Team suite), including prompt-injection attempts, roleplay/social-engineering pressure, and sensitive-value extraction probes.
+
+Findings are grounded in reproducible test executions, Judge-based evaluations, and LangSmith trace evidence (prompt, retrieved context, model answer, verdict/score) to support auditability and regression tracking.
+
+> Scope note: This report presents evidence-based outcomes from tested scenarios. It is not a claim of universal security against all possible prompts, models, or deployment conditions.
 
 ## Scope
 
