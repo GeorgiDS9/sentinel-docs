@@ -401,10 +401,14 @@ export default function GovernanceDashboardPage() {
                 Cost-to-Intelligence Efficiency
               </p>
               <p className="mt-1 text-lg font-bold font-mono text-slate-100">
-                {costToIntelligenceEfficiency.toFixed(2)}%
+                {costToIntelligenceEfficiency !== null
+                  ? `${costToIntelligenceEfficiency.toFixed(2)}%`
+                  : "--"}
               </p>
               <p className="mt-1 text-[11px] text-slate-400">
-                Derived from latest judge score vs session cost
+                {costToIntelligenceEfficiency !== null
+                  ? "Score-adjusted efficiency vs target cost budget"
+                  : "Awaiting judged response to compute efficiency"}
               </p>
             </div>
           </div>
