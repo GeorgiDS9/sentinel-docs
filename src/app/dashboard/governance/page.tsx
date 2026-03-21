@@ -1,6 +1,13 @@
 "use client";
 
-import { ShieldCheck, ShieldAlert } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ExternalLink,
+  FileDown,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { Card } from "@/components/ui/card";
@@ -8,6 +15,7 @@ import { Card } from "@/components/ui/card";
 // LocalStorage keys shared with home/chat
 const AUDIT_STATS_KEY = "sentinel-audit-stats";
 const JUDGE_HISTORY_KEY = "sentinel-judge-history";
+const SESSION_ID_KEY = "sentinel-docs-session-id";
 
 // Static compliance matrix data
 const complianceRows = [
@@ -37,7 +45,7 @@ const complianceRows = [
   },
 ];
 
-// Zod schema for redaction stats
+// Zod schemas
 const AuditStatsSchema = z.object({
   emails: z.number().int().nonnegative(),
   phones: z.number().int().nonnegative(),
@@ -45,10 +53,12 @@ const AuditStatsSchema = z.object({
   ssns: z.number().int().nonnegative(),
 });
 
-// Zod schema for judge score history (last 10)
 const JudgeHistorySchema = z.array(z.number().min(0).max(1));
 
+// Types
 type AuditStats = z.infer<typeof AuditStatsSchema>;
+
+// Defaults
 const EMPTY_STATS: AuditStats = { emails: 0, phones: 0, cards: 0, ssns: 0 };
 
 // Heatmap color thresholds
@@ -59,11 +69,9 @@ function getHeatColor(score: number): string {
 }
 
 export default function GovernanceDashboardPage() {
-  // Redaction stats state
   const [stats, setStats] = useState<AuditStats>(EMPTY_STATS);
-
-  // Judge history state (live)
   const [judgeHistory, setJudgeHistory] = useState<number[]>([]);
+  const [sessionId, setSessionId] = useState<string>("");
 
   useEffect(() => {
     const readAuditStats = () => {
@@ -73,7 +81,6 @@ export default function GovernanceDashboardPage() {
           setStats(EMPTY_STATS);
           return;
         }
-
         const parsed = AuditStatsSchema.safeParse(JSON.parse(raw));
         setStats(parsed.success ? parsed.data : EMPTY_STATS);
       } catch {
@@ -88,7 +95,6 @@ export default function GovernanceDashboardPage() {
           setJudgeHistory([]);
           return;
         }
-
         const parsed = JudgeHistorySchema.safeParse(JSON.parse(raw));
         setJudgeHistory(parsed.success ? parsed.data.slice(-10) : []);
       } catch {
@@ -96,18 +102,20 @@ export default function GovernanceDashboardPage() {
       }
     };
 
-    // Load once on mount
+    const readSessionId = () => {
+      const id = localStorage.getItem(SESSION_ID_KEY) ?? "";
+      setSessionId(id);
+    };
+
     readAuditStats();
     readJudgeHistory();
+    readSessionId();
 
-    // Sync updates from other tabs/windows
     const onStorage = (event: StorageEvent) => {
-      if (event.key === AUDIT_STATS_KEY || event.key === null) {
-        readAuditStats();
-      }
-      if (event.key === JUDGE_HISTORY_KEY || event.key === null) {
+      if (event.key === AUDIT_STATS_KEY || event.key === null) readAuditStats();
+      if (event.key === JUDGE_HISTORY_KEY || event.key === null)
         readJudgeHistory();
-      }
+      if (event.key === SESSION_ID_KEY || event.key === null) readSessionId();
     };
 
     window.addEventListener("storage", onStorage);
@@ -119,6 +127,18 @@ export default function GovernanceDashboardPage() {
     [stats],
   );
 
+  // Session-aware LangSmith deep link
+  const langsmithTraceUrl = useMemo(() => {
+    const sid = encodeURIComponent(sessionId || "");
+    const overrideBase = process.env.NEXT_PUBLIC_LANGSMITH_TRACE_BASE;
+    if (overrideBase && sid) {
+      return `${overrideBase}${sid}`;
+    }
+    return sid
+      ? `https://smith.langchain.com/traces?search=${sid}`
+      : "https://smith.langchain.com/traces";
+  }, [sessionId]);
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#1e293b,transparent_55%),radial-gradient(circle_at_bottom,#022c22,#022c22)] text-foreground font-sans selection:bg-emerald-500/30">
       {/* Background glow */}
@@ -129,24 +149,34 @@ export default function GovernanceDashboardPage() {
 
       <main className="container relative z-10 flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-10 md:py-12">
         {/* Header */}
-        <header className="space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-xl dark:bg-slate-900/40">
-            <span className="inline-flex size-6 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/40">
-              <ShieldCheck className="size-3.5" />
-            </span>
-            <span className="text-sky-100/80 font-semibold tracking-tight">
-              Compliance Command Center
-            </span>
+        <header className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-xl dark:bg-slate-900/40">
+              <span className="inline-flex size-6 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/40">
+                <ShieldCheck className="size-3.5" />
+              </span>
+              <span className="text-sky-100/80 font-semibold tracking-tight">
+                Compliance Command Center
+              </span>
+            </div>
+
+            <h1 className="text-balance text-2xl font-bold tracking-tight text-slate-50 md:text-3xl">
+              NIST AI RMF Governance Dashboard
+            </h1>
+
+            <p className="max-w-3xl text-sm leading-relaxed text-slate-300/80">
+              Real-time trust evidence layer mapping Sentinel Docs controls to
+              Govern, Map, Measure, and Manage requirements.
+            </p>
           </div>
 
-          <h1 className="text-balance text-2xl font-bold tracking-tight text-slate-50 md:text-3xl">
-            NIST AI RMF Governance Dashboard
-          </h1>
-
-          <p className="max-w-3xl text-sm leading-relaxed text-slate-300/80">
-            Real-time trust evidence layer mapping Sentinel Docs controls to
-            Govern, Map, Measure, and Manage requirements.
-          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-100 shadow-sm backdrop-blur transition-colors hover:bg-sky-500/20"
+          >
+            <ArrowLeft className="size-3.5 text-sky-300" />
+            <span>Back to Secure RAG Shell</span>
+          </Link>
         </header>
 
         {/* Compliance health placeholder */}
@@ -276,6 +306,52 @@ export default function GovernanceDashboardPage() {
               <span className="size-2 rounded-full bg-rose-400" />
               Violation (&lt; 0.70)
             </span>
+          </div>
+        </Card>
+
+        {/* Audit actions */}
+        <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
+                Audit Actions
+              </h2>
+              <p className="mt-1 text-xs text-slate-300/75">
+                Open session trace evidence and export compliance report
+                artifacts.
+              </p>
+              <p className="mt-2 text-[11px] text-slate-400">
+                Session:{" "}
+                <span className="font-mono text-slate-300">
+                  {sessionId || "No active session"}
+                </span>
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={langsmithTraceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium shadow-sm backdrop-blur transition-colors ${
+                  sessionId
+                    ? "border-sky-400/30 bg-sky-500/10 text-sky-100 hover:bg-sky-500/20"
+                    : "border-white/15 bg-slate-900/40 text-slate-400 cursor-not-allowed pointer-events-none"
+                }`}
+              >
+                <ExternalLink className="size-3.5" />
+                <span>Open LangSmith Trace</span>
+              </a>
+
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-100 shadow-sm backdrop-blur transition-colors hover:bg-emerald-500/20"
+                title="UI only for now"
+              >
+                <FileDown className="size-3.5" />
+                <span>Compliance Export</span>
+              </button>
+            </div>
           </div>
         </Card>
       </main>
