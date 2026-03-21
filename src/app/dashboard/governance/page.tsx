@@ -57,7 +57,7 @@ const JudgeHistorySchema = z.array(z.number().min(0).max(1));
 
 // Types
 type AuditStats = z.infer<typeof AuditStatsSchema>;
-type HealthStatus = "COMPLIANT" | "REVIEW" | "VIOLATION";
+type HealthStatus = "BASELINING" | "COMPLIANT" | "REVIEW" | "VIOLATION";
 
 // Defaults
 const EMPTY_STATS: AuditStats = { emails: 0, phones: 0, cards: 0, ssns: 0 };
@@ -70,7 +70,7 @@ function getHeatColor(score: number): string {
 }
 
 function getHealthStatus(scores: number[]): HealthStatus {
-  if (scores.length === 0) return "REVIEW";
+  if (scores.length === 0) return "BASELINING";
   if (scores.some((s) => s < 0.7)) return "VIOLATION";
   if (scores.some((s) => s < 0.9)) return "REVIEW";
   return "COMPLIANT";
@@ -83,12 +83,15 @@ function getHealthPillClass(status: HealthStatus): string {
   if (status === "VIOLATION") {
     return "border-rose-400/30 bg-rose-500/10 text-rose-200";
   }
+  if (status === "BASELINING") {
+    return "border-slate-400/30 bg-slate-500/10 text-slate-200";
+  }
   return "border-amber-400/30 bg-amber-500/10 text-amber-200";
 }
 
 function getHealthHint(status: HealthStatus, sampleCount: number): string {
   if (sampleCount === 0) {
-    return "Insufficient evidence: run additional Q&A to establish a reliability baseline.";
+    return "No audit evidence yet: run Q&A in Secure RAG Shell to generate baseline scores.";
   }
   if (status === "COMPLIANT") {
     return "All recent judge scores are in the compliant range.";
