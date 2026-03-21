@@ -17,6 +17,13 @@ const AUDIT_STATS_KEY = "sentinel-audit-stats";
 const JUDGE_HISTORY_KEY = "sentinel-judge-history";
 const SESSION_ID_KEY = "sentinel-docs-session-id";
 
+// Cost telemetry (UI scaffold for upcoming LangSmith wiring)
+// SESSION_COST_KEY stores per-session token usage in localStorage.
+// Pricing uses current GPT-4o-mini public rates (USD per 1M tokens).
+const SESSION_COST_KEY = "sentinel-session-cost-v1";
+const OPENAI_GPT4O_MINI_INPUT_PER_M = 0.15;
+const OPENAI_GPT4O_MINI_OUTPUT_PER_M = 0.6;
+
 // Static compliance matrix data
 const complianceRows = [
   {
@@ -59,8 +66,14 @@ const JudgeHistorySchema = z.array(z.number().min(0).max(1));
 type AuditStats = z.infer<typeof AuditStatsSchema>;
 type HealthStatus = "BASELINING" | "COMPLIANT" | "REVIEW" | "VIOLATION";
 
+type SessionUsage = {
+  promptTokens: number;
+  completionTokens: number;
+};
+
 // Defaults
 const EMPTY_STATS: AuditStats = { emails: 0, phones: 0, cards: 0, ssns: 0 };
+const EMPTY_USAGE: SessionUsage = { promptTokens: 0, completionTokens: 0 };
 
 // Heatmap color thresholds
 function getHeatColor(score: number): string {
@@ -74,6 +87,15 @@ function getHealthStatus(scores: number[]): HealthStatus {
   if (scores.some((s) => s < 0.7)) return "VIOLATION";
   if (scores.some((s) => s < 0.9)) return "REVIEW";
   return "COMPLIANT";
+}
+
+function formatUsd(value: number): string {
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+  });
 }
 
 function getHealthPillClass(status: HealthStatus): string {
@@ -106,6 +128,7 @@ export default function GovernanceDashboardPage() {
   const [stats, setStats] = useState<AuditStats>(EMPTY_STATS);
   const [judgeHistory, setJudgeHistory] = useState<number[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
+  const [usage, setUsage] = useState<SessionUsage>(EMPTY_USAGE);
 
   useEffect(() => {
     const readAuditStats = () => {
@@ -119,6 +142,31 @@ export default function GovernanceDashboardPage() {
         setStats(parsed.success ? parsed.data : EMPTY_STATS);
       } catch {
         setStats(EMPTY_STATS);
+      }
+    };
+
+    const readSessionUsage = () => {
+      try {
+        const raw = localStorage.getItem(SESSION_COST_KEY);
+        if (!raw) {
+          setUsage(EMPTY_USAGE);
+          return;
+        }
+
+        const parsed = JSON.parse(raw) as Partial<SessionUsage> | null;
+        const promptTokens =
+          typeof parsed?.promptTokens === "number" && parsed.promptTokens >= 0
+            ? parsed.promptTokens
+            : 0;
+        const completionTokens =
+          typeof parsed?.completionTokens === "number" &&
+          parsed.completionTokens >= 0
+            ? parsed.completionTokens
+            : 0;
+
+        setUsage({ promptTokens, completionTokens });
+      } catch {
+        setUsage(EMPTY_USAGE);
       }
     };
 
@@ -142,6 +190,7 @@ export default function GovernanceDashboardPage() {
     };
 
     readAuditStats();
+    readSessionUsage();
     readJudgeHistory();
     readSessionId();
 
@@ -150,6 +199,8 @@ export default function GovernanceDashboardPage() {
       if (event.key === JUDGE_HISTORY_KEY || event.key === null)
         readJudgeHistory();
       if (event.key === SESSION_ID_KEY || event.key === null) readSessionId();
+      if (event.key === SESSION_COST_KEY || event.key === null)
+        readSessionUsage();
     };
 
     window.addEventListener("storage", onStorage);
@@ -191,6 +242,25 @@ export default function GovernanceDashboardPage() {
       ? `https://smith.langchain.com/traces?search=${sid}`
       : "https://smith.langchain.com/traces";
   }, [sessionId]);
+
+  const totalTokens = usage.promptTokens + usage.completionTokens;
+
+  const estimatedSessionCost = useMemo(() => {
+    const inputCost =
+      (usage.promptTokens / 1_000_000) * OPENAI_GPT4O_MINI_INPUT_PER_M;
+    const outputCost =
+      (usage.completionTokens / 1_000_000) * OPENAI_GPT4O_MINI_OUTPUT_PER_M;
+    return inputCost + outputCost;
+  }, [usage.promptTokens, usage.completionTokens]);
+
+  const latestJudgeScore = latestScore ?? 0;
+
+  // Simple "value per dollar" proxy (0-100), clamped to avoid runaway values at tiny cost.
+  const costToIntelligenceEfficiency = useMemo(() => {
+    if (estimatedSessionCost <= 0) return 0;
+    const raw = (latestJudgeScore / estimatedSessionCost) * 0.01;
+    return Math.max(0, Math.min(100, raw));
+  }, [latestJudgeScore, estimatedSessionCost]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,#1e293b,transparent_55%),radial-gradient(circle_at_bottom,#022c22,#022c22)] text-foreground font-sans selection:bg-emerald-500/30">
@@ -283,6 +353,63 @@ export default function GovernanceDashboardPage() {
           </div>
         </Card>
 
+        {/* Economic shield metrics (UI scaffold) */}
+        <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
+                Economic Shield Metrics
+              </h2>
+              <p className="mt-1 text-xs text-slate-300/75">
+                Session token and cost telemetry (UI scaffold; LangSmith wiring
+                follows).
+              </p>
+            </div>
+            <span className="inline-flex items-center rounded-full border border-sky-400/30 bg-sky-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-200">
+              GPT-4o-mini
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-white/10 bg-slate-900/40 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                Total Tokens Consumed
+              </p>
+              <p className="mt-1 text-lg font-bold font-mono text-slate-100">
+                {totalTokens.toLocaleString()}
+              </p>
+              <p className="mt-1 text-[11px] text-slate-400">
+                In: {usage.promptTokens.toLocaleString()} / Out:{" "}
+                {usage.completionTokens.toLocaleString()}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-slate-900/40 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                Estimated Session Cost
+              </p>
+              <p className="mt-1 text-lg font-bold font-mono text-slate-100">
+                {formatUsd(estimatedSessionCost)}
+              </p>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Pricing: $0.15/M input - $0.60/M output
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-slate-900/40 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                Cost-to-Intelligence Efficiency
+              </p>
+              <p className="mt-1 text-lg font-bold font-mono text-slate-100">
+                {costToIntelligenceEfficiency.toFixed(2)}%
+              </p>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Derived from latest judge score vs session cost
+              </p>
+            </div>
+          </div>
+        </Card>
+
         {/* Compliance matrix */}
         <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
           <div className="mb-4">
@@ -342,6 +469,7 @@ export default function GovernanceDashboardPage() {
             </table>
           </div>
         </Card>
+
         <div className="grid gap-6 md:grid-cols-[0.75fr_1.25fr]">
           {/* Redaction counter */}
           <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
