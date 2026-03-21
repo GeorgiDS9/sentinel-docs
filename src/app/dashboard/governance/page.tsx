@@ -219,15 +219,6 @@ export default function GovernanceDashboardPage() {
           averageScore={averageScore}
         />
 
-        <EconomicShieldCard
-          usage={usage}
-          totalTokens={totalTokens}
-          estimatedSessionCost={estimatedSessionCost}
-          costToIntelligenceEfficiency={costToIntelligenceEfficiency}
-        />
-
-        <ModelBenchmarkingCard rows={benchmarkRows} />
-
         <ComplianceMatrixCard rows={complianceRows} />
 
         <div className="grid gap-6 md:grid-cols-[0.75fr_1.25fr]">
@@ -240,6 +231,15 @@ export default function GovernanceDashboardPage() {
         </div>
 
         <IntegrityHeatmapCard judgeHistory={judgeHistory} />
+
+        <EconomicShieldCard
+          usage={usage}
+          totalTokens={totalTokens}
+          estimatedSessionCost={estimatedSessionCost}
+          costToIntelligenceEfficiency={costToIntelligenceEfficiency}
+        />
+
+        <ModelBenchmarkingCard rows={benchmarkRows} />
       </main>
     </div>
   );
