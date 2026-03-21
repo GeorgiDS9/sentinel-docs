@@ -57,6 +57,7 @@ const JudgeHistorySchema = z.array(z.number().min(0).max(1));
 
 // Types
 type AuditStats = z.infer<typeof AuditStatsSchema>;
+type HealthStatus = "COMPLIANT" | "REVIEW" | "VIOLATION";
 
 // Defaults
 const EMPTY_STATS: AuditStats = { emails: 0, phones: 0, cards: 0, ssns: 0 };
@@ -66,6 +67,36 @@ function getHeatColor(score: number): string {
   if (score >= 0.9) return "bg-emerald-400/80 ring-emerald-300/60";
   if (score >= 0.7) return "bg-amber-400/80 ring-amber-300/60";
   return "bg-rose-400/80 ring-rose-300/60";
+}
+
+function getHealthStatus(scores: number[]): HealthStatus {
+  if (scores.length === 0) return "REVIEW";
+  if (scores.some((s) => s < 0.7)) return "VIOLATION";
+  if (scores.some((s) => s < 0.9)) return "REVIEW";
+  return "COMPLIANT";
+}
+
+function getHealthPillClass(status: HealthStatus): string {
+  if (status === "COMPLIANT") {
+    return "border-emerald-400/30 bg-emerald-500/10 text-emerald-200";
+  }
+  if (status === "VIOLATION") {
+    return "border-rose-400/30 bg-rose-500/10 text-rose-200";
+  }
+  return "border-amber-400/30 bg-amber-500/10 text-amber-200";
+}
+
+function getHealthHint(status: HealthStatus, sampleCount: number): string {
+  if (sampleCount === 0) {
+    return "Insufficient evidence: run additional Q&A to establish a reliability baseline.";
+  }
+  if (status === "COMPLIANT") {
+    return "All recent judge scores are in the compliant range.";
+  }
+  if (status === "VIOLATION") {
+    return "At least one recent interaction entered violation range and needs review.";
+  }
+  return "Recent interactions indicate mixed reliability and require monitoring.";
 }
 
 export default function GovernanceDashboardPage() {
@@ -127,6 +158,25 @@ export default function GovernanceDashboardPage() {
     [stats],
   );
 
+  const latestScore =
+    judgeHistory.length > 0 ? judgeHistory[judgeHistory.length - 1] : null;
+
+  const averageScore = useMemo(() => {
+    if (judgeHistory.length === 0) return null;
+    const sum = judgeHistory.reduce((acc, s) => acc + s, 0);
+    return sum / judgeHistory.length;
+  }, [judgeHistory]);
+
+  const healthStatus = useMemo(
+    () => getHealthStatus(judgeHistory),
+    [judgeHistory],
+  );
+
+  const healthHint = useMemo(
+    () => getHealthHint(healthStatus, judgeHistory.length),
+    [healthStatus, judgeHistory.length],
+  );
+
   // Session-aware LangSmith deep link
   const langsmithTraceUrl = useMemo(() => {
     const sid = encodeURIComponent(sessionId || "");
@@ -149,8 +199,8 @@ export default function GovernanceDashboardPage() {
 
       <main className="container relative z-10 flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-10 md:py-12">
         {/* Header */}
-        <header className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div className="space-y-3">
+        <header className="flex flex-col gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur-xl dark:bg-slate-900/40">
               <span className="inline-flex size-6 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/40">
                 <ShieldCheck className="size-3.5" />
@@ -160,6 +210,16 @@ export default function GovernanceDashboardPage() {
               </span>
             </div>
 
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-100 shadow-sm backdrop-blur transition-colors hover:bg-sky-500/20"
+            >
+              <ArrowLeft className="size-3.5 text-sky-300" />
+              <span>Back to Secure RAG Shell</span>
+            </Link>
+          </div>
+
+          <div className="space-y-3">
             <h1 className="text-balance text-2xl font-bold tracking-tight text-slate-50 md:text-3xl">
               NIST AI RMF Governance Dashboard
             </h1>
@@ -169,25 +229,54 @@ export default function GovernanceDashboardPage() {
               Govern, Map, Measure, and Manage requirements.
             </p>
           </div>
-
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-100 shadow-sm backdrop-blur transition-colors hover:bg-sky-500/20"
-          >
-            <ArrowLeft className="size-3.5 text-sky-300" />
-            <span>Back to Secure RAG Shell</span>
-          </Link>
         </header>
 
-        {/* Compliance health placeholder */}
+        {/* Compliance health summary */}
         <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
-              Compliance Health
-            </h2>
-            <p className="text-sm text-slate-300/80">
-              Initializing audit evidence widgets...
-            </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
+                Compliance Health
+              </h2>
+              <p className="mt-1 text-xs text-slate-300/80">{healthHint}</p>
+            </div>
+
+            <div
+              className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold tracking-wide ${getHealthPillClass(
+                healthStatus,
+              )}`}
+            >
+              {healthStatus}
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-white/10 bg-slate-900/40 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                Sample Size
+              </p>
+              <p className="mt-1 text-lg font-bold font-mono text-slate-100">
+                {judgeHistory.length}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-slate-900/40 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                Latest Judge Score
+              </p>
+              <p className="mt-1 text-lg font-bold font-mono text-slate-100">
+                {latestScore !== null ? latestScore.toFixed(2) : "--"}
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-slate-900/40 p-3">
+              <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                Average (Last 10)
+              </p>
+              <p className="mt-1 text-lg font-bold font-mono text-slate-100">
+                {averageScore !== null ? averageScore.toFixed(2) : "--"}
+              </p>
+            </div>
           </div>
         </Card>
 
@@ -238,27 +327,74 @@ export default function GovernanceDashboardPage() {
             </table>
           </div>
         </Card>
+        <div className="grid gap-6 md:grid-cols-[0.75fr_1.25fr]">
+          {/* Redaction counter */}
+          <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
+                  Redaction Counter
+                </h2>
+                <p className="mt-1 text-xs text-slate-300/75">
+                  Total PII patterns blocked in the active session.
+                </p>
+              </div>
 
-        {/* Redaction counter */}
-        <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
-                Redaction Counter
-              </h2>
-              <p className="mt-1 text-xs text-slate-300/75">
-                Total PII patterns blocked in the active session.
-              </p>
+              <div className="inline-flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-2">
+                <ShieldAlert className="size-4 text-amber-300" />
+                <span className="text-lg font-bold font-mono text-amber-300">
+                  {totalBlocked}
+                </span>
+              </div>
             </div>
+          </Card>
 
-            <div className="inline-flex items-center gap-3 rounded-xl border border-amber-400/20 bg-amber-500/10 px-4 py-2">
-              <ShieldAlert className="size-4 text-amber-300" />
-              <span className="text-lg font-bold font-mono text-amber-300">
-                {totalBlocked}
-              </span>
+          {/* Audit actions */}
+          <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
+                  Audit Actions
+                </h2>
+                <p className="mt-1 text-xs text-slate-300/75">
+                  Open session trace evidence and export compliance report
+                  artifacts.
+                </p>
+                <p className="mt-2 text-[11px] text-slate-400">
+                  Session:{" "}
+                  <span className="font-mono text-slate-300">
+                    {sessionId || "No active session"}
+                  </span>
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                <a
+                  href={langsmithTraceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium shadow-sm backdrop-blur transition-colors ${
+                    sessionId
+                      ? "border-sky-400/30 bg-sky-500/10 text-sky-100 hover:bg-sky-500/20"
+                      : "border-white/15 bg-slate-900/40 text-slate-400 cursor-not-allowed pointer-events-none"
+                  }`}
+                >
+                  <ExternalLink className="size-3.5" />
+                  <span>Open LangSmith Trace</span>
+                </a>
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/5 px-3 py-1 text-xs font-medium text-emerald-200/60 shadow-sm backdrop-blur cursor-not-allowed"
+                  title="Coming soon"
+                >
+                  <FileDown className="size-3.5" />
+                  <span>Compliance Export (Coming soon)</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         {/* Integrity heatmap (live) */}
         <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
@@ -306,52 +442,6 @@ export default function GovernanceDashboardPage() {
               <span className="size-2 rounded-full bg-rose-400" />
               Violation (&lt; 0.70)
             </span>
-          </div>
-        </Card>
-
-        {/* Audit actions */}
-        <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-[0_0_0_1px_rgba(148,163,184,0.35),0_18px_60px_rgba(15,23,42,0.9)] backdrop-blur-3xl dark:bg-slate-900/50">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-slate-200">
-                Audit Actions
-              </h2>
-              <p className="mt-1 text-xs text-slate-300/75">
-                Open session trace evidence and export compliance report
-                artifacts.
-              </p>
-              <p className="mt-2 text-[11px] text-slate-400">
-                Session:{" "}
-                <span className="font-mono text-slate-300">
-                  {sessionId || "No active session"}
-                </span>
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <a
-                href={langsmithTraceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium shadow-sm backdrop-blur transition-colors ${
-                  sessionId
-                    ? "border-sky-400/30 bg-sky-500/10 text-sky-100 hover:bg-sky-500/20"
-                    : "border-white/15 bg-slate-900/40 text-slate-400 cursor-not-allowed pointer-events-none"
-                }`}
-              >
-                <ExternalLink className="size-3.5" />
-                <span>Open LangSmith Trace</span>
-              </a>
-
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-100 shadow-sm backdrop-blur transition-colors hover:bg-emerald-500/20"
-                title="UI only for now"
-              >
-                <FileDown className="size-3.5" />
-                <span>Compliance Export</span>
-              </button>
-            </div>
           </div>
         </Card>
       </main>
