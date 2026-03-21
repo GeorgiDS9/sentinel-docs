@@ -29,7 +29,7 @@ function getRateLimiter(): Ratelimit | null {
 
   ratelimit = new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(10, "1h"),
+    limiter: Ratelimit.slidingWindow(30, "1h"),
     ephemeralCache: false,
     analytics: true,
     prefix: "@upstash/ratelimit",

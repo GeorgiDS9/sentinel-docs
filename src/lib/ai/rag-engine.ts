@@ -65,15 +65,23 @@ async function extractPagesFromPdf(
   return new Promise((resolve, reject) => {
     const pdfParser = new PDFParser(null, true);
 
-    pdfParser.on("pdfParser_dataError", (errData: any) =>
-      reject(errData?.parserError || errData),
-    );
+    pdfParser.on("pdfParser_dataError", (errData: unknown) => {
+      if (
+        typeof errData === "object" &&
+        errData !== null &&
+        "parserError" in errData
+      ) {
+        reject((errData as { parserError?: unknown }).parserError ?? errData);
+        return;
+      }
+      reject(errData);
+    });
 
-    pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+    pdfParser.on("pdfParser_dataReady", (pdfData) => {
       // 🛡️ Iterate through the Pages array to capture text and page index
-      const pages = pdfData.Pages.map((page: any, index: number) => {
+      const pages = pdfData.Pages.map((page, index: number) => {
         // Decode and join text elements for this specific page
-        const pageText = page.Texts.map((t: any) =>
+        const pageText = page.Texts.map((t) =>
           decodeURIComponent(t.R[0].T),
         ).join(" ");
         return {
@@ -166,7 +174,7 @@ export async function retrieveRelevantChunks(
       includeMetadata: true,
     });
 
-    const filtered = results.filter((res: any) => {
+    const filtered = results.filter((res) => {
       const score = typeof res.score === "number" ? res.score : 0;
       return score >= MIN_RELEVANCE_SCORE;
     });
@@ -175,7 +183,7 @@ export async function retrieveRelevantChunks(
     // so source pills and judge context remain available.
     const selected = filtered.length > 0 ? filtered : results;
 
-    return selected.map((res: any) => ({
+    return selected.map((res) => ({
       id: res.id,
       text: (res.metadata?.text as string) || "Metadata missing",
       page: res.metadata?.page as number,
