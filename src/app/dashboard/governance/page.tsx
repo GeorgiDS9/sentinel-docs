@@ -177,7 +177,7 @@ export default function GovernanceDashboardPage() {
         <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
       </div>
 
-      <main className="container relative z-10 flex min-h-screen max-w-6xl flex-col gap-6 px-4 py-10 md:py-12">
+      <main className="relative z-10 flex min-h-screen max-w-6xl flex-col gap-6 ml-32 px-4 py-10 md:py-12">
         {/* Header */}
         <header className="flex flex-col gap-4">
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
@@ -210,7 +210,6 @@ export default function GovernanceDashboardPage() {
             </p>
           </div>
         </header>
-
         <ComplianceHealthCard
           healthHint={healthHint}
           healthStatus={healthStatus}
@@ -218,9 +217,7 @@ export default function GovernanceDashboardPage() {
           latestScore={latestScore}
           averageScore={averageScore}
         />
-
         <ComplianceMatrixCard rows={complianceRows} />
-
         <div className="grid gap-6 md:grid-cols-[0.75fr_1.25fr]">
           <RedactionCounterCard totalBlocked={totalBlocked} />
 
@@ -229,16 +226,13 @@ export default function GovernanceDashboardPage() {
             langsmithTraceUrl={langsmithTraceUrl}
           />
         </div>
-
         <IntegrityHeatmapCard judgeHistory={judgeHistory} />
-
         <EconomicShieldCard
           usage={usage}
           totalTokens={totalTokens}
           estimatedSessionCost={estimatedSessionCost}
           costToIntelligenceEfficiency={costToIntelligenceEfficiency}
         />
-
         <ModelBenchmarkingCard rows={benchmarkRows} />
       </main>
     </div>
